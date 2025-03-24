@@ -1,26 +1,26 @@
-CREATE DATABASE IF NOT EXISTS trackit;
-
 CREATE TABLE IF NOT EXISTS users (
     id varchar(50) NOT NULL UNIQUE PRIMARY KEY,
-    password varchar(255) NOT NULL UNIQUE,
-    first_name varchar(255) NOT NULL UNIQUE,
-    last_name varchar(255) NOT NULL UNIQUE,
+    password varchar(255) NOT NULL,
+    first_name varchar(255) NOT NULL,
+    last_name varchar(255) NOT NULL,
     roles varchar(255) NOT NULL UNIQUE,
-    access TEXT[],
+    access TEXT[]
 );
 
-CREATE TABLE IF NOT EXISTS suppliers (
+CREATE TABLE IF NOT EXISTS supplier (
     id int PRIMARY KEY,
-    supplier_name varchar(100),
+    supplier_name varchar(100)
 );
 
+--
 CREATE TABLE IF NOT EXISTS category (
-     id PRIMARY KEY,
+     id int PRIMARY KEY,
      category_name VARCHAR(100)
 );
-
+--
 CREATE TABLE IF NOT EXISTS product (
-     product_name VARCHAR(100) PRIMARY KEY,
+    id int PRIMARY KEY,
+     product_name VARCHAR(100),
      cost DECIMAL(10,2),
      expire DATE,
      purchased DATE,
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS product (
 );
 
 -- Many-to-Many: user manages Product
-CREATE TABLE user_manages_product (
-    user_id INT,
+CREATE TABLE IF NOT EXISTS user_manages_product (
+    user_id varchar(50),
     product_id INT,
     PRIMARY KEY (user_id, product_id),
     FOREIGN KEY (user_id) REFERENCES users(id),
@@ -39,8 +39,8 @@ CREATE TABLE user_manages_product (
 );
 
 -- Many-to-Many: User manages Supplier
-CREATE TABLE user_manages_supplier (
-    user_id INT,
+CREATE TABLE IF NOT EXISTS user_manages_supplier (
+    user_id varchar(50),
     supplier_id INT,
     PRIMARY KEY (user_id, supplier_id),
     FOREIGN KEY (user_id) REFERENCES users(id),
@@ -48,8 +48,8 @@ CREATE TABLE user_manages_supplier (
 );
 
 -- Many-to-Many: ser manages Category
-CREATE TABLE user_manages_category (
-    user_id INT,
+CREATE TABLE IF NOT EXISTS user_manages_category (
+    user_id varchar(50),
     category_id INT,
     PRIMARY KEY (user_id, category_id),
     FOREIGN KEY (user_id) REFERENCES users(id),
@@ -57,7 +57,7 @@ CREATE TABLE user_manages_category (
 );
 
 -- Many-to-Many: supplier supplies product
-CREATE TABLE supplier_supplies_product (
+CREATE TABLE IF NOT EXISTS supplier_supplies_product (
     supplier_id INT,
     product_id INT,
     PRIMARY KEY (supplier_id, product_id),
