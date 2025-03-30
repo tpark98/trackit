@@ -1,37 +1,68 @@
 import {View, Text, FlatList, TouchableOpacity} from 'react-native'
 import SearchBar from "@/components/SearchBar";
-import React from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import ProductCard from "@/components/ProductCard";
 import ActiveTab from "@/components/ActiveTab";
 import CategoryCard from "@/components/CategoryCard";
-
-const products = [
-    {id: 1, title:"Tomate", quantity: 10, expiration: "2021-01-01"},
-    {id: 2, title:"Banana", quantity: 10, expiration: "2021-01-01"},
-    {id: 3, title:"Mango", quantity: 10, expiration: "2021-01-01"},
-    {id: 4, title:"Mango", quantity: 10, expiration: "2021-01-01"},
-    {id: 5, title:"Mango", quantity: 10, expiration: "2021-01-01"},
-    {id: 6, title:"Mango", quantity: 10, expiration: "2021-01-01"},
-    {id: 7, title:"Mango", quantity: 10, expiration: "2021-01-01"},
-    {id: 8, title:"Mango", quantity: 10, expiration: "2021-01-01"},
-]
-const categories = [
-    {id: 1, title:"Dairy"},
-    {id: 2, title:"Vegetables"},
-    {id: 3, title:"Fruits"},
-    {id: 4, title:"Meat"},
-    {id: 5, title:"Seafood"},
-]
+import { useFocusEffect } from '@react-navigation/native';
+import { Product, Category } from "@/types/types";
 
 const Inventory = () => {
     const [search, setSearch] = React.useState("")
-    const [filteredProducts, setFilteredProducts] = React.useState(products);
+    const [products, setProducts] = React.useState<Product[]>([]);
+    const [filteredProducts, setFilteredProducts] = React.useState<Product[]>();
+    const [categories, setCategories] = React.useState<Category[]>([]);
     const [activeTab, setActiveTab] = React.useState("Inventory");
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchProducts = async () => {
+                try {
+                    const response = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}:3000/products`);
+                    const data = await response.json();
+                    setProducts(data);
+                    setFilteredProducts(data);
+                } catch (error) {
+                    console.error("Error fetching products:", error);
+                }
+            };
+
+            fetchProducts();
+        }, [])
+    );
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}:3000/categories`)
+                const data = await response.json();
+                setCategories(data);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        }
+
+        fetchCategories();
+    }, [])
+
+    const handleCategorySelect = (categoryId: number | null) => {
+        setSelectedCategoryId(categoryId);
+        const filtered = applyFilters(search, categoryId, products);
+        setFilteredProducts(filtered);
+    };
+
+    const applyFilters = (searchText: string, categoryId: number | null, fullList: Product[]) => {
+        return fullList.filter(product => {
+            const matchesSearch = product.product_name.toLowerCase().includes(searchText.toLowerCase());
+            const matchesCategory = categoryId === null || product.category_id === categoryId;
+            return matchesSearch && matchesCategory;
+        });
+    };
 
     const handleSearch = (text: string) => {
         setSearch(text)
-        const filtered = products.filter((product) =>
-            product.title.toLowerCase().includes(text.toLowerCase()))
+        const filtered = applyFilters(text, selectedCategoryId, products);
         setFilteredProducts(filtered)
     }
 
@@ -39,6 +70,22 @@ const Inventory = () => {
     return (
         <View className="flex-1 px-5">
             <SearchBar placeholder="Search..." onChangeText={handleSearch} />
+
+            {selectedCategoryId !== null && (
+                <TouchableOpacity
+                    className="flex-row items-center self-start bg-white border border-gray-300 px-3 py-1 rounded-full mt-1"
+                    onPress={() => {
+                        setSelectedCategoryId(null);
+                        setFilteredProducts(products); // reset filter
+                    }}
+                >
+                    <Text className="text-sm font-semibold text-gray-700 mr-1">
+                        #{categories.find(cat => cat.id === selectedCategoryId)?.category_name}
+                    </Text>
+                    <Text className="text-base text-gray-600">×</Text>
+                </TouchableOpacity>
+            )}
+
             <View className="flex-row border-b border-gray-300">
                 <ActiveTab
                     activeTab = {activeTab}
@@ -56,7 +103,14 @@ const Inventory = () => {
             <FlatList
                 data={filteredProducts}
                 renderItem={({item}) => (
-                    <ProductCard id={item.id} title={item.title} quantity={item.quantity} expiration={item.expiration} />
+                    <ProductCard
+                        product={{
+                            id: item.id,
+                            title: item.product_name,
+                            quantity: item.leftover,
+                            expiration: item.expire.split("T")[0],
+                        }}
+                    />
                 )}
                 keyExtractor={item => item.id.toString()}
                 showsVerticalScrollIndicator={false}
@@ -65,7 +119,7 @@ const Inventory = () => {
                 <FlatList
                     data={categories}
                     renderItem={({item}) => (
-                        <CategoryCard title={item.title} />
+                        <CategoryCard id={item.id} title={item.category_name} handleCategorySelect={handleCategorySelect} setActiveTab={setActiveTab} />
                     )}
                     keyExtractor={item => item.id.toString()}
                     showsVerticalScrollIndicator={false}

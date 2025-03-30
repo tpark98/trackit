@@ -25,7 +25,7 @@ const Index = () => {
                 style={styles.input}
             />
             <TouchableOpacity onPress={handleGoToHome} style={styles.button}>
-                <Text style={styles.buttonText}>Sign up</Text>
+                <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
         </View>
     )
