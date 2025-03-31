@@ -6,6 +6,7 @@ import ActiveTab from "@/components/ActiveTab";
 import CategoryCard from "@/components/CategoryCard";
 import { useFocusEffect } from '@react-navigation/native';
 import { Product, Category } from "@/types/types";
+import {fetchCategories, fetchProducts} from "@/services/api";
 
 const Inventory = () => {
     const [search, setSearch] = React.useState("")
@@ -17,33 +18,17 @@ const Inventory = () => {
 
     useFocusEffect(
         useCallback(() => {
-            const fetchProducts = async () => {
-                try {
-                    const response = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}:3000/products`);
-                    const data = await response.json();
-                    setProducts(data);
-                    setFilteredProducts(data);
-                } catch (error) {
-                    console.error("Error fetching products:", error);
-                }
-            };
-
-            fetchProducts();
+            fetchProducts().then(response => {
+                setProducts(response);
+                setFilteredProducts(response)
+            });
         }, [])
     );
 
     useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const response = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}:3000/categories`)
-                const data = await response.json();
-                setCategories(data);
-            } catch (error) {
-                console.error("Error fetching products:", error);
-            }
-        }
-
-        fetchCategories();
+        fetchCategories().then((response) => {
+            setCategories(response);
+        });
     }, [])
 
     const handleCategorySelect = (categoryId: number | null) => {

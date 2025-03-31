@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require("../db");
 
-// GET all users
-router.get('/login', async(req, res) => {
+// Verify user
+router.post('/login', async(req, res) => {
     const { id, password } = req.body;
 
     if (!id || !password) {
@@ -42,3 +42,5 @@ router.get('/login', async(req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 })
+
+module.exports = router;
