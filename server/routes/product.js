@@ -4,7 +4,9 @@ const db = require("../db");
 
 // GET all products
 router.get('/', async(req, res) => {
-    const result = await db.query("SELECT * FROM product");
+    console.log(req.query);
+
+    const result = await db.query('SELECT * FROM product');
     res.json(result.rows);
 })
 

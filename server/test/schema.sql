@@ -20,12 +20,13 @@ CREATE TABLE IF NOT EXISTS category (
 --
 CREATE TABLE IF NOT EXISTS product (
     id int PRIMARY KEY,
-     product_name VARCHAR(100),
-     cost DECIMAL(10,2),
-     expire DATE,
-     purchased DATE,
-     leftover INT,
-     category_id INT NOT NULL,
+    product_name VARCHAR(100),
+    cost DECIMAL(10,2),
+    expire DATE,
+    purchase_date DATE,
+    purchased INT,
+    leftover INT,
+    category_id INT NOT NULL,
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
@@ -64,3 +65,38 @@ CREATE TABLE IF NOT EXISTS supplier_supplies_product (
     FOREIGN KEY (supplier_id) REFERENCES supplier(id),
     FOREIGN KEY (product_id) REFERENCES product(id)
 );
+
+-- -- Enable RLS
+-- ALTER TABLE product ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE supplier ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE category ENABLE ROW LEVEL SECURITY;
+--
+-- -- Access Policy for Products
+-- CREATE POLICY user_product_access ON product
+-- FOR SELECT
+-- USING (
+--     EXISTS (
+--         SELECT 1 FROM user_manages_product ump
+--         WHERE ump.user_id = current_user AND ump.product_id = product.id
+--     )
+-- );
+
+-- -- Access Policy for Suppliers
+-- CREATE POLICY user_supplier_access ON supplier
+-- FOR SELECT
+-- USING (
+--     EXISTS (
+--         SELECT 1 FROM user_manages_supplier ums
+--         WHERE ums.user_id = current_user AND ums.supplier_id = supplier.id
+--     )
+-- );
+--
+-- -- Access Policy for Categories
+-- CREATE POLICY user_category_access ON category
+-- FOR SELECT
+-- USING (
+--     EXISTS (
+--         SELECT 1 FROM user_manages_category umc
+--         WHERE umc.user_id = current_user AND umc.category_id = category.id
+--     )
+-- );
