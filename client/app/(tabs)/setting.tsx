@@ -8,26 +8,22 @@ import {
     Modal,
     TextInput,
     Button,
-    Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 
 const Setting = () => {
-    const [profilePic, setProfilePic] = useState('https://via.placeholder.com/150');
-    const [name, setName] = useState('John Doe');
+    const [profilePic, setProfilePic] = useState('https://gatech.edu');
+    const [name, setName] = useState('Name');
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [newName, setNewName] = useState(name);
     const [storeLocation, setStoreLocation] = useState('Store 1');
 
     const handleEditProfilePic = async () => {
-        // Request permission to access media library
-        if (Platform.OS !== 'web') {
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (status !== 'granted') {
-                alert('Sorry, we need camera roll permissions to make this work!');
-                return;
-            }
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Sorry, we need camera roll permissions to make this work!');
+            return;
         }
 
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -35,7 +31,6 @@ const Setting = () => {
             quality: 1,
         });
 
-        // For newer versions of expo-image-picker, use "canceled" instead of "cancelled"
         if (!result.canceled) {
             if (result.assets && result.assets.length > 0) {
                 setProfilePic(result.assets[0].uri);

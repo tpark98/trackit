@@ -4,7 +4,12 @@ Inventory management app for coffee shop owners.
 
 # Requirements
 
-Before, make sure to install npm and postgresql
+Before, make sure to install npm and postgresql.
+
+For npm, you can do the following in the `client` folder if you haven't already:
+```bash
+npm install
+```
 
 # Get Started
 
@@ -59,4 +64,18 @@ EXPO_PUBLIC_BACKEND_URL = #your backend ip address
 Inside the server directory, please create .env file:
 ```bash
 postgresql_user = #your postgres username
+```
+
+# Testing the Settings Page
+
+To test the Settings page, you're gonna need a few dependencies.
+
+First, install Picker (for the dropdowns):
+```bash
+npm install @react-native-picker/picker 
+```
+
+Then, install Expo Image Picker (for the image selection) :
+```bash
+npx expo install expo-image-picker
 ```
