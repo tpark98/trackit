@@ -7,9 +7,10 @@ import {
     Image,
     Modal,
     TextInput,
-    Button
+    Button,
+    Platform,
 } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 
 const Setting = () => {
@@ -19,21 +20,27 @@ const Setting = () => {
     const [newName, setNewName] = useState(name);
     const [storeLocation, setStoreLocation] = useState('Store 1');
 
-    const handleEditProfilePic = () => {
-        const options = {
-            mediaType: 'photo',
-        };
-
-        launchImageLibrary(options, (response) => {
-            if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.errorMessage) {
-                console.log('ImagePicker Error: ', response.errorMessage);
-            } else if (response.assets && response.assets.length > 0) {
-                const uri = response.assets[0].uri;
-                setProfilePic(uri);
+    const handleEditProfilePic = async () => {
+        // Request permission to access media library
+        if (Platform.OS !== 'web') {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Sorry, we need camera roll permissions to make this work!');
+                return;
             }
+        }
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            quality: 1,
         });
+
+        // For newer versions of expo-image-picker, use "canceled" instead of "cancelled"
+        if (!result.canceled) {
+            if (result.assets && result.assets.length > 0) {
+                setProfilePic(result.assets[0].uri);
+            }
+        }
     };
 
     const handleEditName = () => {
@@ -157,7 +164,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     picker: {
-        height: 40,
+        height: 50,
         width: '100%',
     },
     title: {
