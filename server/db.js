@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-    user: 'taehopark',
+    user: process.env.postgresql_user,
     host: 'localhost',
     database: 'trackit',
     // password: 'your_db_password',
