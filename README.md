@@ -50,3 +50,13 @@ Inside the trackit/server/test, run this:
 \i schema.sql
 \i test.sql
 ```
+
+Inside the client directory, please create .env file:
+```bash
+EXPO_PUBLIC_BACKEND_URL = #your backend ip address
+```
+
+Inside the server directory, please create .env file:
+```bash
+postgresql_user = #your postgres username
+```
