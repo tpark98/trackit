@@ -20,7 +20,7 @@ const Inventory = () => {
         useCallback(() => {
             fetchProducts().then(response => {
                 setProducts(response);
-                setFilteredProducts(response)
+                setFilteredProducts(response);
             });
         }, [])
     );

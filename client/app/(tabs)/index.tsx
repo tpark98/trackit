@@ -27,7 +27,7 @@ export default function Index() {
       }}
     >
       <Text>Dashboard</Text>
-        <Dashboard/>
+        <Dashboard products={products} />
     </View>
   );
 }

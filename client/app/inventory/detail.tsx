@@ -10,7 +10,7 @@ const Detail = () => {
 
     useEffect(() => {
         const fetchProduct = async () => {
-            const res = await fetch(`http://${process.env["EXPO_PUBLIC_BACKEND_URL"]}:3000/products/${id}`);
+            const res = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}/products/${id}`);
             const data = await res.json();
             setTitle(data.product_name);
             setQuantity(String(data.leftover));
@@ -22,7 +22,7 @@ const Detail = () => {
 
     const handleSubmit = async () => {
         try {
-            const response = await fetch(`http://${process.env["EXPO_PUBLIC_BACKEND_URL"]}:3000/products/${id}`, {
+            const response = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}/products/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

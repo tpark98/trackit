@@ -7,7 +7,7 @@ const Index = () => {
     const router = useRouter();
 
     const handleGoToHome = async () => {
-        const id = "user1";
+        const id = "user01";
         const password = "test";
         // goes to the backend to determine if it correctly login
         console.log(await handleLogin(id, password));

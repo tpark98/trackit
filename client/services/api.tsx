@@ -1,7 +1,9 @@
+const backend = `http://${process.env.EXPO_PUBLIC_BACKEND_URL}`
+
 // Products
 export const fetchProducts = async () => {
     try {
-        const response = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}:3000/products`);
+        const response = await fetch(`${backend}/products`);
         const data = await response.json();
         return data
     } catch (error) {
@@ -12,7 +14,7 @@ export const fetchProducts = async () => {
 // Categories
 export const fetchCategories = async () => {
     try {
-        const response = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}:3000/categories`)
+        const response = await fetch(`${backend}/categories`)
         const data = await response.json();
         return data;
     } catch (error) {
@@ -28,7 +30,7 @@ export const handleLogin = async (id: string, password: string) => {
     };
 
     try {
-        const response = await fetch(`http://${process.env.EXPO_PUBLIC_BACKEND_URL}:3000/users/login`, {
+        const response = await fetch(`${backend}/users/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -36,6 +38,7 @@ export const handleLogin = async (id: string, password: string) => {
             body: JSON.stringify(loginData)
         })
         const data = await response.json();
+        console.log(data);
 
         if (response.ok) {
             return data.user;
