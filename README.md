@@ -79,3 +79,7 @@ Then, install Expo Image Picker (for the image selection) :
 ```bash
 npx expo install expo-image-picker
 ```
+
+# Loading fonts & dummydata
+Put dummyData.ts in a new folder called "dummy" in client, and put the 2 nexa font files in client->assets->fonts. npm install before running.
+
