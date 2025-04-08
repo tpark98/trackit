@@ -49,4 +49,11 @@ export const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 18,
     },
+    errorText: {
+        color: "red",
+        marginBottom: 15,
+        fontSize: 16,
+        textAlign: "center",
+      },
+      
 });
