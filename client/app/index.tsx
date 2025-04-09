@@ -1,7 +1,7 @@
-import {View, Text, Button, TextInput, Image, TouchableOpacity} from 'react-native'
+import { View, Text, TextInput, Image, TouchableOpacity } from 'react-native';
 import { useRouter } from "expo-router";
 import { styles } from "../styles/login.styles";
-import {handleLogin} from "@/services/api";
+import { handleLogin } from "@/services/api";
 import React, { useState } from 'react';
 
 const Index = () => {
@@ -25,30 +25,34 @@ const Index = () => {
           setError('An unexpected error occurred. Please try again.');
         }
       };
-    
 
     return (
         <View style={styles.container}>
-            <Image style={styles.icon}
-            source={require('../assets/icons/logoT.png')}/>
-            <Text style={styles.title}>TrackIt</Text>
+            <Image style={styles.icon} source={require('../assets/icons/logoT.png')} />
+            <Text style={[styles.title, { fontFamily: 'nexa-ExtraLight' }]}>TrackIt</Text>
             <TextInput
-                placeholder="username"
-                autoCapitalize="none"
-                style={styles.input}
-                onChangeText={setUsername}
-            />
-            <TextInput
-                placeholder="password"
-                autoCapitalize="none"
-                style={styles.input}
-                onChangeText={setPassword}
-            />
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              placeholder="username"
+              autoCapitalize="none"
+              style={[styles.input, { fontFamily: 'nexa-ExtraLight' }]}
+              placeholderTextColor="#aaa"  // Ensure the placeholder text color is visible
+              onChangeText={setUsername}
+          />
+
+          <TextInput
+              placeholder="password"
+              autoCapitalize="none"
+              style={[styles.input, { fontFamily: 'nexa-ExtraLight' }]}
+              placeholderTextColor="#aaa"  // Ensure the placeholder text color is visible
+              onChangeText={setPassword}
+              secureTextEntry
+          />
+
+            {error ? <Text style={[styles.errorText, { fontFamily: 'nexa-ExtraLight' }]}>{error}</Text> : null}
             <TouchableOpacity onPress={handleGoToHome} style={styles.button}>
-                <Text style={styles.buttonText}>Login</Text>
+                <Text style={[styles.buttonText, { fontFamily: 'nexa-ExtraLight' }]}>Login</Text>
             </TouchableOpacity>
         </View>
-    )
-}
-export default Index
+    );
+};
+
+export default Index;
