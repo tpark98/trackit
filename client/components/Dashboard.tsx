@@ -109,7 +109,7 @@ const Dashboard: React.FC<Props> = ({ products }) => {
         datasets: [
             {
                 data: sortedPurchases.map(p => p.revenue),
-                color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
+                color: (opacity = 1) => `rgba(35, 197, 94, ${opacity})`,
                 strokeWidth: 2.5,
             },
             {
