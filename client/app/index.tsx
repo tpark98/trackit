@@ -29,7 +29,8 @@ const Index = () => {
 
     return (
         <View style={styles.container}>
-            <Image style={styles.icon}/>
+            <Image style={styles.icon}
+            source={require('../assets/icons/logoT.png')}/>
             <Text style={styles.title}>TrackIt</Text>
             <TextInput
                 placeholder="username"

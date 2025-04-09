@@ -12,7 +12,6 @@ export const styles = StyleSheet.create({
     icon: {
         width: 100,
         height: 100,
-        backgroundColor: "black",
         marginBottom: 10,
         resizeMode: "contain",
     },
