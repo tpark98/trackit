@@ -1,7 +1,6 @@
-import {View, Text, Image, TouchableOpacity} from 'react-native'
-import {Link} from "expo-router";
-import React from 'react'
-import {set} from "yaml/dist/schema/yaml-1.1/set";
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Link } from "expo-router";
+import React from 'react';
 
 interface Props {
     id: number,
@@ -12,17 +11,27 @@ interface Props {
 
 const CategoryCard = ({ id, title, setActiveTab, handleCategorySelect }: Props) => {
     return (
-        <Link href="/(tabs)/inventory" className="mb-1 p-1" asChild>
+        <Link href="/(tabs)/inventory" className="w-full" asChild>
             <TouchableOpacity
-                className="bg-[#69286F] rounded-md  border-2 border-[#69286F] w-[100%] p-5"
+                className="bg-white rounded-3xl p-5 mt-5 mb-5 w-full"
+                style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 3 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 5,
+                    elevation: 5, // For Android
+                }}
                 onPress={() => {
-                    setActiveTab("Inventory")
-                    handleCategorySelect(id)
+                    setActiveTab("Inventory");
+                    handleCategorySelect(id);
                 }}
             >
-                <Text className="text-center font-bold text-white text-3xl">{title}</Text>
+                <View className="flex-row items-center justify-center">
+                    <Text className="text-[#6B21A8] text-center text-2xl font-[Nexa-Heavy]">{title}</Text>
+                </View>
             </TouchableOpacity>
         </Link>
-    )
-}
-export default CategoryCard
+    );
+};
+
+export default CategoryCard;

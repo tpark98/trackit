@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, Animated, ScrollView, TouchableOpacity, Dimensions, TextInput, Alert } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Product, Category } from "@/types/types";
 import { users, purchases, emergencyContacts as initialEmergencyContacts, weeklyFinances } from "@/dummy/dummyData";
 
@@ -11,6 +11,8 @@ interface Props {
 const Dashboard: React.FC<Props> = ({ products }) => {
     const screenWidth = Dimensions.get('window').width;
     const user = users.length > 0 ? users[0] : { firstName: "Guest" };
+
+    console.log(products);
 
     // fade in values
     const titleOpacity = useRef(new Animated.Value(0)).current;
@@ -99,97 +101,81 @@ const Dashboard: React.FC<Props> = ({ products }) => {
         return date.toLocaleDateString('en-US', options);
     };
 
-    // line chart
-    const barWidth = 60;
-    const chartWidth = Math.max(screenWidth, purchases.length * barWidth);
-    const sortedPurchases = [...purchases].sort((a, b) => a.name.localeCompare(b.name));
+    // NEW FINANCIAL GRAPH - Purchased vs Leftover
+    const renderInventoryComparisonGraph = () => {
+        // Sort products by name for consistent display
+        const sortedProducts = [...products].sort((a, b) => a.product_name.localeCompare(b.product_name));
 
-    const data = {
-        labels: sortedPurchases.map(p => p.name.substring(0, 6)),
-        datasets: [
-            {
-                data: sortedPurchases.map(p => p.revenue),
-                color: (opacity = 1) => `rgba(35, 197, 94, ${opacity})`,
-                strokeWidth: 2.5,
-            },
-            {
-                data: sortedPurchases.map(p => p.cost),
-                color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
-                strokeWidth: 2.5,
-            }
-        ],
-        legend: ["Revenue", "Cost"]
-    };
+        // Take top 8 products for better readability
+        const displayProducts = sortedProducts;
 
-    const chartConfig = {
-        backgroundColor: '#f8fafc',
-        backgroundGradientFrom: '#f8fafc',
-        backgroundGradientTo: '#f1f5f9',
-        decimalPlaces: 0,
-        color: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
-        labelColor: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
-        style: {
-            borderRadius: 16,
-            paddingRight: 16
-        },
-        propsForDots: {
-            r: "4",
-            strokeWidth: "2",
-            stroke: "#ffffff"
-        },
-        propsForBackgroundLines: {
-            strokeDasharray: '',
-            strokeWidth: 0.5,
-            stroke: 'rgba(203, 213, 225, 0.8)',
-        },
-        propsForLabels: {
-            fontFamily: 'NexaHeavy',
-            fontSize: 11,
-        },
-        paddingRight: 24,
-        paddingTop: 16,
-        formatYLabel: (value) => `$${value}`,
-    };
+        const barWidth = 65;
+        const chartWidth = Math.max(screenWidth, displayProducts.length * barWidth);
 
-    const renderFinancialGraph = () => {
-        const mostRecentWeek = weeklyFinances[weeklyFinances.length - 1];
         const data = {
-            labels: mostRecentWeek.productSales.map(p => p.productName),
+            labels: displayProducts.map(p => p.product_name.substring(0, 6)),
             datasets: [
                 {
-                    data: mostRecentWeek.productSales.map(p => p.revenue),
-                    color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
+                    data: displayProducts.map(p => p.purchased),
+                    color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue for purchased
                     strokeWidth: 2.5,
                 },
                 {
-                    data: mostRecentWeek.productSales.map(p => p.cost),
-                    color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
+                    data: displayProducts.map(p => p.leftover),
+                    color: (opacity = 1) => `rgba(36, 197, 94, ${opacity})`, // Green for leftover
                     strokeWidth: 2.5,
                 }
             ],
-            legend: ["Revenue", "Cost"]
+            legend: ["Purchased", "Leftover"]
         };
 
-        const barWidth = 60;
-        const chartWidth = Math.max(screenWidth, mostRecentWeek.productSales.length * barWidth);
+        const chartConfig = {
+            backgroundColor: '#f8fafd',
+            backgroundGradientFrom: '#f8fafc',
+            backgroundGradientTo: '#f1f5f9',
+            decimalPlaces: 0,
+            color: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
+            style: {
+                borderRadius: 16,
+                paddingRight: 16
+            },
+            propsForDots: {
+                r: "4",
+                strokeWidth: "2",
+                stroke: "#ffffff"
+            },
+            barPercentage: 0.7,
+            propsForBackgroundLines: {
+                strokeDasharray: '',
+                strokeWidth: 0.5,
+                stroke: 'rgba(203, 213, 225, 0.8)',
+            },
+            propsForLabels: {
+                fontFamily: 'NexaHeavy',
+                fontSize: 11,
+            },
+            paddingRight: 24,
+            paddingTop: 16,
+        };
 
         return (
             <View className="w-full">
                 <Text className="text-m font-nexaHeavy mb-2 text-gray-600 text-center">
-                    Revenue vs. Cost (Products)
+                    Inventory Comparison: Purchased vs Leftover
                 </Text>
                 <Text className="text-sm font-nexaHeavy mb-2 text-gray-600 text-center">
-                    For: The Week of {formatWeekStart(mostRecentWeek.week)}
+                    Product Utilization Overview
                 </Text>
 
                 <View className="flex-row items-center justify-center mb-2">
                     <View className="flex-row items-center mr-4">
-                        <View className="w-3 h-3 rounded-full bg-green-500 mr-1" />
-                        <Text className="text-xs font-nexaHeavy text-green-600">Revenue</Text>
+                        <View className="w-3 h-3 rounded-full bg-blue-500 mr-1" />
+                        <Text className="text-xs font-nexaHeavy text-blue-600">Purchased</Text>
                     </View>
                     <View className="flex-row items-center">
-                        <View className="w-3 h-3 rounded-full bg-red-500 mr-1" />
-                        <Text className="text-xs font-nexaHeavy text-red-600">Cost</Text>
+                        <View className="w-3 h-3 rounded-full bg-green-500 mr-1" />
+                        <Text className="text-xs font-nexaHeavy text-green-600">Leftover</Text>
                     </View>
                 </View>
 
@@ -211,8 +197,8 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                             style={{
                                 borderRadius: 8,
                             }}
-                            yAxisLabel="$"
                             verticalLabelRotation={30}
+                            fromZero={true}
                         />
                     </ScrollView>
                 </View>
@@ -220,61 +206,74 @@ const Dashboard: React.FC<Props> = ({ products }) => {
         );
     };
 
-    // weekly line chart
-    const renderWeeklyFinancialGraph = () => {
-        const barWidth = 60;
-        const chartWidth = Math.max(screenWidth, weeklyFinances.length * barWidth);
+    const renderProductExpenseGraph = () => {
+        // Sort products by name for consistent display
+        const sortedProducts = [...products].sort((a, b) => a.product_name.localeCompare(b.product_name));
 
-        const shortWeekLabels = weeklyFinances.map(w => {
-            const parts = w.week.split(" to ");
-            return parts[0].slice(-5);
-        });
+        // Take top 8 products for better readability
+        const displayProducts = sortedProducts.slice(0, 8);
 
-        const weeklyData = {
-            labels: shortWeekLabels,
+        const barWidth = 65;
+        const chartWidth = Math.max(screenWidth, displayProducts.length * barWidth);
+
+        const data = {
+            labels: displayProducts.map(p => p.product_name.substring(0, 6)),
             datasets: [
                 {
-                    data: weeklyFinances.map(w => w.revenue),
-                    color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
-                    strokeWidth: 2.5,
-                },
-                {
-                    data: weeklyFinances.map(w => w.cost),
-                    color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
-                    strokeWidth: 2.5,
-                },
-                {
-                    data: weeklyFinances.map(w => w.profit),
-                    color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-                    strokeWidth: 2.5,
+                    data: displayProducts.map(p => p.cost || 0), // Use cost property, default to 0 if undefined
+                    color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue bars
                 }
             ],
-            legend: ["Revenue", "Cost", "Profit"]
+        };
+
+        const chartConfig = {
+            backgroundColor: '#f8fafc',
+            backgroundGradientFrom: '#f8fafc',
+            backgroundGradientTo: '#f1f5f9',
+            decimalPlaces: 2,
+            color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue color
+            labelColor: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
+            style: {
+                borderRadius: 16,
+                paddingRight: 16
+            },
+            barPercentage: 0.7,
+            propsForBackgroundLines: {
+                strokeDasharray: '',
+                strokeWidth: 0.5,
+                stroke: 'rgba(203, 213, 225, 0.8)',
+            },
+            propsForLabels: {
+                fontFamily: 'NexaHeavy',
+                fontSize: 11,
+            },
+            paddingRight: 24,
+            paddingTop: 16,
+            formatYLabel: (value) => `${value}`,
+            // Enable rendering of data value on top of bars
+            renderValuesOnTopOfBars: true,
+            // Custom decorator for displaying values
+            decorator: (data) => {
+                return data.map(value => {
+                    return {
+                        value: `${value.toFixed(2)}`,
+                        position: 'top',
+                        color: '#4B5563', // text-gray-600
+                        fontSize: 11,
+                        fontFamily: 'NexaHeavy',
+                    }
+                });
+            },
         };
 
         return (
             <View className="w-full mt-6">
                 <Text className="text-m font-nexaHeavy mb-2 text-gray-600 text-center">
-                    Performance: Revenue, Cost, & Profit
+                    Product Expenses
                 </Text>
                 <Text className="text-sm font-nexaHeavy mb-2 text-gray-600 text-center">
-                    For: {formatMonth(mostRecentWeek.week)}
+                    (Per Product)
                 </Text>
-
-                <View className="flex-row items-center justify-center mb-2">
-                    <View className="flex-row items-center mr-4">
-                        <View className="w-3 h-3 rounded-full bg-green-500 mr-1" />
-                        <Text className="text-xs font-nexaHeavy text-green-600">Revenue</Text>
-                    </View>
-                    <View className="flex-row items-center mr-4">
-                        <View className="w-3 h-3 rounded-full bg-red-500 mr-1" />
-                        <Text className="text-xs font-nexaHeavy text-red-600">Cost</Text>
-                    </View>
-                    <View className="flex-row items-center">
-                        <View className="w-3 h-3 rounded-full bg-blue-500 mr-1" />
-                        <Text className="text-xs font-nexaHeavy text-blue-600">Profit</Text>
-                    </View>
-                </View>
 
                 <View className="bg-white p-4 rounded-xl shadow-sm">
                     <ScrollView
@@ -282,24 +281,126 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                         showsHorizontalScrollIndicator={true}
                         contentContainerStyle={{
                             paddingRight: 20,
-                            height: 300,
+                            height: 250, // Match chart height
                         }}
                     >
-                        <LineChart
-                            data={weeklyData}
+                        <BarChart
+                            data={data}
                             width={chartWidth > screenWidth ? chartWidth : screenWidth * 0.9}
                             height={250}
                             chartConfig={chartConfig}
-                            bezier
                             style={{
                                 borderRadius: 8,
                             }}
-                            yAxisLabel="$"
                             verticalLabelRotation={30}
+                            fromZero={true}
+                            showBarTops={true}
+                            showValuesOnTopOfBars={true}
+                            withInnerLines={true}
+                            yAxisLabel="$"
                         />
                     </ScrollView>
                 </View>
             </View>
+        );
+    };
+
+    // Additional analysis of inventory data
+    const renderInventoryStats = () => {
+        // Calculate usage percentages
+        const productStats = products.map(product => {
+            const used = product.purchased - product.leftover;
+            const usagePercentage = (used / product.purchased) * 100;
+            return {
+                ...product,
+                used,
+                usagePercentage: isNaN(usagePercentage) ? 0 : usagePercentage
+            };
+        });
+
+        // Sort by highest and lowest usage
+        const highestUsage = [...productStats].sort((a, b) => b.usagePercentage - a.usagePercentage).slice(0, 3);
+        const lowestUsage = [...productStats].sort((a, b) => a.usagePercentage - b.usagePercentage).slice(0, 3);
+
+        return (
+            <>
+                {/* Highest usage products */}
+                <View className="bg-blue-50 rounded-xl p-4 mb-4 w-full">
+                    <Text className="text-base font-nexaHeavy mb-3 text-blue-700">
+                        Highest Utilization Products
+                    </Text>
+
+                    {highestUsage.map((item) => (
+                        <View
+                            key={item.id}
+                            className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
+                        >
+                            <Text className="text-gray-800 font-nexaExtraLight">{item.product_name}</Text>
+                            <View className="bg-blue-100 px-3 py-1 rounded-full">
+                                <Text className="text-blue-600 font-nexaHeavy text-sm">
+                                    {item.usagePercentage.toFixed(1)}% used
+                                </Text>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Lowest usage products */}
+                <View className="bg-amber-50 rounded-xl p-4 mb-4 w-full">
+                    <Text className="text-base font-nexaHeavy mb-3 text-amber-700">
+                        Lowest Utilization Products
+                    </Text>
+
+                    {lowestUsage.map((item) => (
+                        <View
+                            key={item.id}
+                            className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
+                        >
+                            <Text className="text-gray-800 font-nexaExtraLight">{item.product_name}</Text>
+                            <View className="bg-amber-100 px-3 py-1 rounded-full">
+                                <Text className="text-amber-600 font-nexaHeavy text-sm">
+                                    {item.usagePercentage.toFixed(1)}% used
+                                </Text>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Summary Stats */}
+                <View className="bg-green-50 rounded-xl p-4 w-full">
+                    <Text className="text-base font-nexaHeavy mb-3 text-green-700">
+                        Inventory Summary
+                    </Text>
+
+                    <View className="flex-row justify-between mb-4">
+                        <View className="bg-white rounded-xl p-3 flex-1 mr-2 shadow-sm">
+                            <Text className="text-s text-gray-500 font-nexaExtraLight">Total Items Purchased</Text>
+                            <Text className="text-lg text-blue-600 font-nexaHeavy">
+                                {products.reduce((total, item) => total + item.purchased, 0).toLocaleString()}
+                            </Text>
+                        </View>
+                        <View className="bg-white rounded-xl p-3 flex-1 ml-2 shadow-sm">
+                            <Text className="text-s text-gray-500 font-nexaExtraLight">Total Items Leftover</Text>
+                            <Text className="text-lg text-green-600 font-nexaHeavy">
+                                {products.reduce((total, item) => total + item.leftover, 0).toLocaleString()}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View className="bg-white rounded-xl p-3 shadow-sm">
+                        <Text className="text-s text-gray-500 font-nexaExtraLight">Overall Utilization Rate</Text>
+                        <Text className="text-lg text-purple-600 font-nexaHeavy">
+                            {(() => {
+                                const totalPurchased = products.reduce((total, item) => total + item.purchased, 0);
+                                const totalLeftover = products.reduce((total, item) => total + item.leftover, 0);
+                                const used = totalPurchased - totalLeftover;
+                                const rate = (used / totalPurchased) * 100;
+                                return `${isNaN(rate) ? 0 : rate.toFixed(1)}%`;
+                            })()}
+                        </Text>
+                    </View>
+                </View>
+            </>
         );
     };
 
@@ -459,7 +560,7 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                                             style={{ opacity: productsOpacity }}
                                             className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
                                         >
-                                            <Text className="text-gray-800 font-nexaExtraLight">{item.productName}</Text>
+                                            <Text className="text-gray-800 font-nexaExtraLight">{item.product_name}</Text>
                                             <View className="bg-red-100 px-3 py-1 rounded-full">
                                                 <Text className="text-red-600 font-nexaHeavy text-sm">{item.leftover} left</Text>
                                             </View>
@@ -481,7 +582,7 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                                             style={{ opacity: expiringOpacity }}
                                             className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
                                         >
-                                            <Text className="text-gray-800 font-nexaExtraLight">{item.productName}</Text>
+                                            <Text className="text-gray-800 font-nexaExtraLight">{item.product_name}</Text>
                                             <View className="bg-amber-100 px-3 py-1 rounded-full">
                                                 <Text className="text-amber-600 font-nexaHeavy text-sm">{formatExpirationDate(item.expire).split(',')[0]}</Text>
                                             </View>
@@ -492,7 +593,7 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                         )}
                     </View>
 
-                    {/* financials card */}
+                    {/* financials card - OVERHAULED */}
                     <View className="bg-white rounded-3xl shadow-md p-5 mb-10 w-full">
                         <Animated.View style={{ opacity: financialsButtonOpacity }} className="w-full">
                             <TouchableOpacity
@@ -501,7 +602,7 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                             >
                                 <View className="flex-row items-center">
                                     <View className="w-1 h-6 bg-green-500 rounded-full mr-3" />
-                                    <Text className="text-gray-800 text-lg font-nexaHeavy">Financial Overview</Text>
+                                    <Text className="text-gray-800 text-lg font-nexaHeavy">Inventory Analysis</Text>
                                 </View>
                                 <DropdownArrow isOpen={showFinancials} color="#22c55e" />
                             </TouchableOpacity>
@@ -511,121 +612,29 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                             <Animated.View style={{ opacity: financialsOpacity }} className="w-full">
                                 <View className="mt-2 mb-2 w-full">
                                     <View className="flex-row justify-between mb-4 w-full">
-                                        <View className="bg-green-50 rounded-xl p-3 flex-1 mr-2">
-                                            <Text className="text-s text-gray-500 font-nexaExtraLight">This Month's Revenue</Text>
+                                        <View className="bg-blue-50 rounded-xl p-3 flex-1 mr-2">
+                                            <Text className="text-s text-gray-500 font-nexaExtraLight">Total Purchased</Text>
+                                            <Text className="text-lg text-blue-600 font-nexaHeavy">
+                                                {products.reduce((total, item) => total + item.purchased, 0).toLocaleString()} units
+                                            </Text>
+                                        </View>
+                                        <View className="bg-green-50 rounded-xl p-3 flex-1 ml-2">
+                                            <Text className="text-s text-gray-500 font-nexaExtraLight">Total Leftover</Text>
                                             <Text className="text-lg text-green-600 font-nexaHeavy">
-                                                ${weeklyFinances
-                                                .slice(-4)
-                                                .reduce((total, item) => total + item.revenue, 0)
-                                                .toLocaleString()}
+                                                {products.reduce((total, item) => total + item.leftover, 0).toLocaleString()} units
                                             </Text>
                                         </View>
-                                        <View className="bg-red-50 rounded-xl p-3 flex-1 ml-2">
-                                            <Text className="text-s text-gray-500 font-nexaExtraLight">This Month's Costs</Text>
-                                            <Text className="text-lg text-red-600 font-nexaHeavy">
-                                                ${weeklyFinances
-                                                .slice(-4)
-                                                .reduce((total, item) => total + item.cost, 0)
-                                                .toLocaleString()}
-                                            </Text>
-                                        </View>
-
-                                    </View>
-                                    <View className="bg-white rounded-xl shadow-sm p-4 mb-4 w-full">
-                                        {renderFinancialGraph()}
                                     </View>
 
-                                    <View className="bg-white rounded-xl shadow-sm p-4 mb-4 w-full">
-                                        {renderWeeklyFinancialGraph()}
+                                    <View className="bg-white rounded-xl shadow-sm p-4 mb-6 w-full">
+                                        {renderInventoryComparisonGraph()}
                                     </View>
 
-                                    {/* top revenue */}
-                                    <View className="bg-green-50 rounded-xl p-4 mb-4 w-full">
-                                        <Text className="text-base font-nexaHeavy mb-3 text-green-700">
-                                            Top Revenue Generators - Week Of {formatWeekStart(mostRecentWeek.week)}
-                                        </Text>
-
-                                        {mostRecentWeek.productSales
-                                            .sort((a, b) => b.revenue - a.revenue)
-                                            .slice(0, 3)
-                                            .map((item) => (
-                                                <View
-                                                    key={item.productId}
-                                                    className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
-                                                >
-                                                    <Text className="text-gray-800 font-nexaExtraLight">{item.productName}</Text>
-                                                    <View className="bg-green-100 px-3 py-1 rounded-full">
-                                                        <Text className="text-green-600 font-nexaHeavy text-sm">${item.revenue.toLocaleString()}</Text>
-                                                    </View>
-                                                </View>
-                                            ))}
+                                    <View className="bg-white rounded-xl shadow-sm p-4 mb-6 w-full">
+                                        {renderProductExpenseGraph()}
                                     </View>
 
-                                    {/* lowest revenue */}
-                                    <View className="bg-red-50 rounded-xl p-4 mb-4 w-full">
-                                        <Text className="text-base font-nexaHeavy mb-3 text-red-700">
-                                            Lowest Revenue Generators - Week Of {formatWeekStart(mostRecentWeek.week)}
-                                        </Text>
-
-                                        {mostRecentWeek.productSales
-                                            .sort((a, b) => a.revenue - b.revenue)
-                                            .slice(0, 3)
-                                            .map((item) => (
-                                                <View
-                                                    key={item.productId}
-                                                    className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
-                                                >
-                                                    <Text className="text-gray-800 font-nexaExtraLight">{item.productName}</Text>
-                                                    <View className="bg-red-100 px-3 py-1 rounded-full">
-                                                        <Text className="text-red-600 font-nexaHeavy text-sm">${item.revenue.toLocaleString()}</Text>
-                                                    </View>
-                                                </View>
-                                            ))}
-                                    </View>
-
-                                    {/* top cost */}
-                                    <View className="bg-orange-50 rounded-xl p-4 mb-4 w-full">
-                                        <Text className="text-base font-nexaHeavy mb-3 text-orange-700">
-                                            Highest Cost Products - Week Of {formatWeekStart(mostRecentWeek.week)}
-                                        </Text>
-
-                                        {mostRecentWeek.productSales
-                                            .sort((a, b) => b.cost - a.cost)
-                                            .slice(0, 3)
-                                            .map((item) => (
-                                                <View
-                                                    key={item.productId}
-                                                    className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
-                                                >
-                                                    <Text className="text-gray-800 font-nexaExtraLight">{item.productName}</Text>
-                                                    <View className="bg-orange-100 px-3 py-1 rounded-full">
-                                                        <Text className="text-orange-600 font-nexaHeavy text-sm">${item.cost.toLocaleString()}</Text>
-                                                    </View>
-                                                </View>
-                                            ))}
-                                    </View>
-
-                                    {/* lowest cost */}
-                                    <View className="bg-blue-50 rounded-xl p-4 w-full">
-                                        <Text className="text-base font-nexaHeavy mb-3 text-blue-700">
-                                            Lowest Cost Products - Week Of {formatWeekStart(mostRecentWeek.week)}
-                                        </Text>
-
-                                        {mostRecentWeek.productSales
-                                            .sort((a, b) => a.cost - b.cost)
-                                            .slice(0, 3)
-                                            .map((item) => (
-                                                <View
-                                                    key={item.productId}
-                                                    className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
-                                                >
-                                                    <Text className="text-gray-800 font-nexaExtraLight">{item.productName}</Text>
-                                                    <View className="bg-blue-100 px-3 py-1 rounded-full">
-                                                        <Text className="text-blue-600 font-nexaHeavy text-sm">${item.cost.toLocaleString()}</Text>
-                                                    </View>
-                                                </View>
-                                            ))}
-                                    </View>
+                                    {renderInventoryStats()}
                                 </View>
                             </Animated.View>
                         )}
