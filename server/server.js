@@ -7,7 +7,9 @@ const categoryRoutes = require('./routes/category');
 const userRoutes = require('./routes/users');
 const db = require('./routes/db');
 // middleware
-app.use(cors());
+//app.use(cors());
+app.use(cors({ origin: '*' }));
+
 app.use(express.json());
 
 // create, delete, update the user

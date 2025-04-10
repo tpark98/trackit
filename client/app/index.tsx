@@ -51,6 +51,11 @@ const Index = () => {
             <TouchableOpacity onPress={handleGoToHome} style={styles.button}>
                 <Text style={[styles.buttonText, { fontFamily: 'nexa-ExtraLight' }]}>Login</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.push('/signup')} style={styles.link}>
+              <Text style={[styles.buttonText, { fontFamily: 'nexa-ExtraLight' }]}>Sign Up</Text>
+            </TouchableOpacity>
+
         </View>
     );
 };

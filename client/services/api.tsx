@@ -23,10 +23,13 @@ export const fetchCategories = async () => {
 };
 
 // user
-export const handleLogin = async (id: string, password: string) => {
+export const handleLogin = async (id: string, passwords: string, fname: string, lname: string, role: string) => {
     const loginData = {
         id: id,
-        password: password,
+        password: passwords,
+        first_name: fname,
+        last_name: lname,
+        role: role
     };
 
     try {
@@ -46,7 +49,25 @@ export const handleLogin = async (id: string, password: string) => {
             return data.message;
         }
     } catch (error) {
-        console.error('Network error:', error);
+        console.error('error:', error);
     }
+};
+
+
+//signup
+export const handleSignUp = async (username: string, password: string) => {
+  try {
+    const response = await fetch(`${backend}/users/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await response.json();
+    if (response.ok) return data;
+    return data.message || "Signup failed";
+  } catch (error) {
+    return "Network error. Please try again.";
+  }
 };
 
