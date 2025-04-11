@@ -52,7 +52,9 @@ const Index = () => {
                 <Text style={[styles.buttonText, { fontFamily: 'nexa-ExtraLight' }]}>Login</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.push('/signup')} style={styles.link}>
+            <View style={{ height: 15 }} />  {/* Spacer */}
+
+            <TouchableOpacity onPress={() => router.push('/signup')} style={styles.button}>
               <Text style={[styles.buttonText, { fontFamily: 'nexa-ExtraLight' }]}>Sign Up</Text>
             </TouchableOpacity>
 

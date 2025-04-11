@@ -52,19 +52,21 @@ const SignUp = () => {
               onChangeText={setFname}
       />
       <TextInput
-        placeholderTextColor="last name"
+        placeholder="last name"
         autoCapitalize="none"
         style={[styles.input, { fontFamily: 'nexa-ExtraLight' }]}
-        placeholderTextColor="aaa"
+        placeholderTextColor="#aaa"
         onChangeText={setLname}
       />
+
       <TextInput
-              placeholderTextColor="Role"
-              autoCapitalize="none"
-              style={[styles.input, { fontFamily: 'nexa-ExtraLight' }]}
-              placeholderTextColor="aaa"
-              onChangeText={setRole}
+        placeholder="role"
+        autoCapitalize="none"
+        style={[styles.input, { fontFamily: 'nexa-ExtraLight' }]}
+        placeholderTextColor="#aaa"
+        onChangeText={setRole}
       />
+
       {error ? <Text style={[styles.errorText, { fontFamily: 'nexa-ExtraLight' }]}>{error}</Text> : null}
 
       <TouchableOpacity onPress={handleGoToTabs} style={styles.button}>
