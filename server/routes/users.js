@@ -45,12 +45,15 @@ router.post('/login', async(req, res) => {
     const { username, password } = req.body;
     console.log(username)
     console.log(password)
-    if (!username || !password) {
-        return res.status(400).json({ message: 'Missing id or password' });
+    if (!username) {
+        return res.status(400).json({ message: 'Missing id' });
+    }
+    if (!password) {
+        return res.status(400).json({ message: 'Missing password' });
     }
     console.log("hello")
     try {
-        // 1. Find user by ID
+        // 1. Find user by IDw
         const result = await db.query('SELECT * FROM users WHERE id = $1', [username]);
 
         if (result.rows.length === 0) {

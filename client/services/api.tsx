@@ -125,7 +125,7 @@ export const addCategory = async (
 // user
 export const handleLogin = async (
   username: string,
-  password: string,
+  password: string
 
 ) => {
 
@@ -136,7 +136,7 @@ export const handleLogin = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({username, password}),
     });
     const data = await response.json();
     console.log(data);
