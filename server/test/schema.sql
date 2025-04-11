@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     password varchar(255) NOT NULL,
     first_name varchar(255) NOT NULL,
     last_name varchar(255) NOT NULL,
-    roles varchar(255) NOT NULL UNIQUE,
+    roles varchar(255) NOT NULL,
     access TEXT[]
 );
 
