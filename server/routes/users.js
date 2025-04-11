@@ -3,6 +3,9 @@ const router = express.Router();
 const db = require("../db/db.js");
 console.log("LOADED users.js");
 // Verify user
+console.log('typeof DB_PASSWORD:', typeof process.env.DB_PASSWORD);
+const result = require('dotenv').config();
+console.log('dotenv result:', result);
 
 router.get('/login', (req, res) => {
   res.send("You're hitting the GET /users/login route");
@@ -11,7 +14,7 @@ router.get('/login', (req, res) => {
 router.post('/signup', async (req, res) => {
   console.log("signup works")
   const { id, password, first_name, last_name, role } = req.body;
-
+    console.log(password)
   try {
     if (!id || !password || !first_name || !last_name || !role) {
       console.log(id)
@@ -39,15 +42,16 @@ router.post('/signup', async (req, res) => {
 
 router.post('/login', async(req, res) => {
     console.log("HIT /users/login");
-    const { id, password } = req.body;
-
-    if (!id || !password) {
+    const { username, password } = req.body;
+    console.log(username)
+    console.log(password)
+    if (!username || !password) {
         return res.status(400).json({ message: 'Missing id or password' });
     }
     console.log("hello")
     try {
         // 1. Find user by ID
-        const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+        const result = await db.query('SELECT * FROM users WHERE id = $1', [username]);
 
         if (result.rows.length === 0) {
             return res.status(401).json({ message: 'Invalid credentia' });
@@ -74,7 +78,7 @@ router.post('/login', async(req, res) => {
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server errors' });
     }
 })
 

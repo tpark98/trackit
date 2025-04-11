@@ -124,19 +124,11 @@ export const addCategory = async (
 
 // user
 export const handleLogin = async (
-  id: string,
-  passwords: string,
-  fname: string,
-  lname: string,
-  role: string
+  username: string,
+  password: string,
+
 ) => {
-  const loginData = {
-    id: id,
-    password: passwords,
-    first_name: fname,
-    last_name: lname,
-    role: role,
-  };
+
 
   try {
     const response = await fetch(`${backend}/users/login`, {
@@ -144,7 +136,7 @@ export const handleLogin = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(loginData),
+      body: JSON.stringify({ username, password }),
     });
     const data = await response.json();
     console.log(data);
@@ -160,12 +152,19 @@ export const handleLogin = async (
 };
 
 //signup
-export const handleSignUp = async (username: string, password: string) => {
+export const handleSignUp = async (id: string, password: string, fname: string, lname: string, role: string) => {
+  const loginData = {
+      id: id,
+      password: password,
+      first_name: fname,
+      last_name: lname,
+      role: role,
+    };
   try {
     const response = await fetch(`${backend}/users/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify(loginData),
     });
 
     const data = await response.json();
