@@ -15,7 +15,8 @@ const SignUp = () => {
 
   const handleGoToTabs = async () => {
     const result = await handleSignUp(username, password, fname, lname, role);
-    if (result && result.id) {
+
+    if (result['message'] === "Success") {
       setError('');
       router.push('/(tabs)');
     } else if (typeof result === 'string') {

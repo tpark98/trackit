@@ -1,4 +1,5 @@
 const backend = `http://${process.env.EXPO_PUBLIC_BACKEND_URL}`;
+// const backend = `http://${process.env.EXPO_PUBLIC_BACKEND_URL}:3000`; // test purpose
 
 // Products
 export const fetchProducts = async () => {
@@ -100,7 +101,7 @@ export const addCategory = async (
   };
 
   try {
-    const response = await fetch(`${backend}/catgories`, {
+    const response = await fetch(`${backend}/categories`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -128,8 +129,6 @@ export const handleLogin = async (
   password: string
 
 ) => {
-
-
   try {
     const response = await fetch(`${backend}/users/login`, {
       method: "POST",

@@ -7,9 +7,10 @@ console.log('typeof DB_PASS:', typeof process.env.DB_PASS);
 const result = require('dotenv').config();
 console.log('dotenv result:', result);
 
-router.get('/login', (req, res) => {
-  res.send("You're hitting the GET /users/login route");
-});
+// router.get('/login', (req, res) => {
+//   console.log('logged in');
+//   res.send("You're hitting the GET /users/login route");
+// });
 
 router.post('/signup', async (req, res) => {
   console.log("signup works")
