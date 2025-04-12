@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require("../db/db.js");
 console.log("LOADED users.js");
 // Verify user
-console.log('typeof DB_PASSWORD:', typeof process.env.DB_PASSWORD);
+console.log('typeof DB_PASS:', typeof process.env.DB_PASS);
 const result = require('dotenv').config();
 console.log('dotenv result:', result);
 
@@ -80,8 +80,13 @@ router.post('/login', async(req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server errors' });
+        console.error("Login error details:", {
+            message: err.message,
+            stack: err.stack,
+            code: err.code,
+            detail: err.detail
+        });
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 })
 
