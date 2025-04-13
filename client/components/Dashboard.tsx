@@ -32,9 +32,11 @@ const Dashboard: React.FC<Props> = ({ products }) => {
     const [emergencyContacts, setEmergencyContacts] = useState(initialEmergencyContacts);
     const [newContactName, setNewContactName] = useState('');
     const [newContactPhone, setNewContactPhone] = useState('');
+    const [newContactDesc, setNewContactDesc] = useState('');
     const [editingContact, setEditingContact] = useState(null);
     const [editContactName, setEditContactName] = useState('');
     const [editContactPhone, setEditContactPhone] = useState('');
+    const [editContactDesc, setEditContactDesc] = useState('');
 
     const mostRecentWeek = weeklyFinances.length > 0 ? weeklyFinances[weeklyFinances.length - 1] : null;
 
@@ -121,12 +123,12 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                     strokeWidth: 2.5,
                 },
                 {
-                    data: displayProducts.map(p => p.leftover),
+                    data: displayProducts.map(p => p.purchased - p.leftover),
                     color: (opacity = 1) => `rgba(36, 197, 94, ${opacity})`, // Green for leftover
                     strokeWidth: 2.5,
                 }
             ],
-            legend: ["Purchased", "Leftover"]
+            legend: ["Purchased", "Sold"]
         };
 
         const chartConfig = {
@@ -162,7 +164,7 @@ const Dashboard: React.FC<Props> = ({ products }) => {
         return (
             <View className="w-full">
                 <Text className="text-m font-nexaHeavy mb-2 text-gray-600 text-center">
-                    Inventory Comparison: Purchased vs Leftover
+                    Inventory Comparison: Purchased vs Sold
                 </Text>
                 <Text className="text-sm font-nexaHeavy mb-2 text-gray-600 text-center">
                     Product Utilization Overview
@@ -175,7 +177,7 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                     </View>
                     <View className="flex-row items-center">
                         <View className="w-3 h-3 rounded-full bg-green-500 mr-1" />
-                        <Text className="text-xs font-nexaHeavy text-green-600">Leftover</Text>
+                        <Text className="text-xs font-nexaHeavy text-green-600">Sold</Text>
                     </View>
                 </View>
 
@@ -220,7 +222,7 @@ const Dashboard: React.FC<Props> = ({ products }) => {
             labels: displayProducts.map(p => p.product_name.substring(0, 6)),
             datasets: [
                 {
-                    data: displayProducts.map(p => p.cost || 0), // Use cost property, default to 0 if undefined
+                    data: displayProducts.map(p => p.cost * p.purchased || 0), // Use cost property, default to 0 if undefined
                     color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue bars
                 }
             ],
@@ -380,9 +382,9 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                             </Text>
                         </View>
                         <View className="bg-white rounded-xl p-3 flex-1 ml-2 shadow-sm">
-                            <Text className="text-s text-gray-500 font-nexaExtraLight">Total Items Leftover</Text>
+                            <Text className="text-s text-gray-500 font-nexaExtraLight">Total Items Sold</Text>
                             <Text className="text-lg text-green-600 font-nexaHeavy">
-                                {products.reduce((total, item) => total + item.leftover, 0).toLocaleString()}
+                                {products.reduce((total, item) => total + item.purchased - item.leftover, 0).toLocaleString()}
                             </Text>
                         </View>
                     </View>
@@ -457,19 +459,21 @@ const Dashboard: React.FC<Props> = ({ products }) => {
 
     // contact helpers
     const addEmergencyContact = () => {
-        if (newContactName.trim() === '' || newContactPhone.trim() === '') {
-            Alert.alert('Error', 'Please enter both name & phone number');
+        if (newContactName.trim() === '' || newContactPhone.trim() === '' || newContactDesc.trim() === '') {
+            Alert.alert('Error', 'Please enter name, phone number, & description');
             return;
         }
 
         const newContact = {
             id: Date.now().toString(),
             name: newContactName,
+            desc: newContactDesc,
             phone: newContactPhone
         };
 
         setEmergencyContacts([...emergencyContacts, newContact]);
         setNewContactName('');
+        setNewContactDesc('');
         setNewContactPhone('');
     };
 
@@ -641,117 +645,130 @@ const Dashboard: React.FC<Props> = ({ products }) => {
                     </View>
 
                     {/* contacts card */}
-                    <View className="bg-white rounded-3xl shadow-md p-5 mb-10 w-full">
-                        <Animated.View style={{ opacity: emergencyButtonOpacity }} className="w-full">
-                            <TouchableOpacity
-                                onPress={toggleEmergencyContacts}
-                                className="flex-row items-center justify-between py-3 mb-1 w-full"
-                            >
-                                <View className="flex-row items-center">
-                                    <View className="w-1 h-6 bg-blue-500 rounded-full mr-3" />
-                                    <Text className="text-gray-800 text-lg font-nexaHeavy">Emergency Contacts</Text>
+<View className="bg-white rounded-3xl shadow-md p-5 mb-10 w-full">
+    <Animated.View style={{ opacity: emergencyButtonOpacity }} className="w-full">
+        <TouchableOpacity
+            onPress={toggleEmergencyContacts}
+            className="flex-row items-center justify-between py-3 mb-1 w-full"
+        >
+            <View className="flex-row items-center">
+                <View className="w-1 h-6 bg-blue-500 rounded-full mr-3" />
+                <Text className="text-gray-800 text-lg font-nexaHeavy">Emergency Contacts</Text>
+            </View>
+            <DropdownArrow isOpen={showEmergencyContacts} color="#3b82f6" />
+        </TouchableOpacity>
+    </Animated.View>
+
+    {showEmergencyContacts && (
+        <Animated.View style={{ opacity: emergencyContactsOpacity }} className="mt-2 mb-2 w-full">
+            <View className="bg-blue-50 rounded-xl p-4 w-full">
+                {emergencyContacts.map((contact) => (
+                    <View
+                        key={contact.id}
+                        className="bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
+                    >
+                        {editingContact === contact.id ? (
+                            <View>
+                                <TextInput
+                                    className="bg-gray-100 p-2 rounded-lg mb-2"
+                                    value={editContactName}
+                                    onChangeText={setEditContactName}
+                                    placeholder="Contact Name"
+                                />
+                                <TextInput
+                                    className="bg-gray-100 p-2 rounded-lg mb-2"
+                                    value={editContactDesc}
+                                    onChangeText={setEditContactDesc}
+                                    placeholder="Description (e.g., Plumber)"
+                                />
+                                <TextInput
+                                    className="bg-gray-100 p-2 rounded-lg mb-2"
+                                    value={editContactPhone}
+                                    onChangeText={setEditContactPhone}
+                                    placeholder="Phone Number"
+                                    keyboardType="phone-pad"
+                                />
+                                <View className="flex-row justify-end">
+                                    <TouchableOpacity
+                                        onPress={cancelEditing}
+                                        className="bg-gray-200 px-3 py-1 rounded-full mr-2"
+                                    >
+                                        <Text className="text-gray-700 text-sm">Cancel</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={saveEditedContact}
+                                        className="bg-blue-500 px-3 py-1 rounded-full"
+                                    >
+                                        <Text className="text-white text-sm">Save</Text>
+                                    </TouchableOpacity>
                                 </View>
-                                <DropdownArrow isOpen={showEmergencyContacts} color="#3b82f6" />
-                            </TouchableOpacity>
-                        </Animated.View>
-
-                        {showEmergencyContacts && (
-                            <Animated.View style={{ opacity: emergencyContactsOpacity }} className="mt-2 mb-2 w-full">
-                                <View className="bg-blue-50 rounded-xl p-4 w-full">
-                                    {emergencyContacts.map((contact) => (
-                                        <View
-                                            key={contact.id}
-                                            className="bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
-                                        >
-                                            {editingContact === contact.id ? (
-                                                <View>
-                                                    <TextInput
-                                                        className="bg-gray-100 p-2 rounded-lg mb-2"
-                                                        value={editContactName}
-                                                        onChangeText={setEditContactName}
-                                                        placeholder="Contact Name"
-                                                    />
-                                                    <TextInput
-                                                        className="bg-gray-100 p-2 rounded-lg mb-2"
-                                                        value={editContactPhone}
-                                                        onChangeText={setEditContactPhone}
-                                                        placeholder="Phone Number"
-                                                        keyboardType="phone-pad"
-                                                    />
-                                                    <View className="flex-row justify-end">
-                                                        <TouchableOpacity
-                                                            onPress={cancelEditing}
-                                                            className="bg-gray-200 px-3 py-1 rounded-full mr-2"
-                                                        >
-                                                            <Text className="text-gray-700 text-sm">Cancel</Text>
-                                                        </TouchableOpacity>
-                                                        <TouchableOpacity
-                                                            onPress={saveEditedContact}
-                                                            className="bg-blue-500 px-3 py-1 rounded-full"
-                                                        >
-                                                            <Text className="text-white text-sm">Save</Text>
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                </View>
-                                            ) : (
-                                                // Display mode
-                                                <View className="flex-row justify-between items-center">
-                                                    <View className="flex-1">
-                                                        <Text className="text-gray-800 font-nexaHeavy">{contact.name}</Text>
-                                                        <Text className="text-gray-600 font-nexaExtraLight">{contact.phone}</Text>
-                                                    </View>
-                                                    <View className="flex-row">
-                                                        <TouchableOpacity
-                                                            onPress={() => startEditing(contact)}
-                                                            className="bg-blue-100 px-3 py-1 rounded-full mr-2"
-                                                        >
-                                                            <Text className="text-blue-600 text-sm">Edit</Text>
-                                                        </TouchableOpacity>
-                                                        <TouchableOpacity
-                                                            onPress={() => deleteEmergencyContact(contact.id)}
-                                                            className="bg-red-100 px-3 py-1 rounded-full"
-                                                        >
-                                                            <Text className="text-red-600 text-sm">Remove</Text>
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                </View>
-                                            )}
-                                        </View>
-                                    ))}
-
-                                    <View className="mt-4 mb-2">
-                                        <Text className="text-base font-nexaHeavy mb-3 text-blue-700">Add New Contact</Text>
-
-                                        <View className="bg-white p-4 rounded-lg shadow-sm">
-                                            <TextInput
-                                                className="bg-gray-100 p-3 rounded-lg mb-3"
-                                                placeholder="Contact Name (e.g., Plumber)"
-                                                value={newContactName}
-                                                onChangeText={setNewContactName}
-                                                placeholderTextColor="#9CA3AF"
-                                            />
-
-                                            <TextInput
-                                                className="bg-gray-100 p-3 rounded-lg mb-3"
-                                                placeholder="Phone Number"
-                                                value={newContactPhone}
-                                                onChangeText={setNewContactPhone}
-                                                keyboardType="phone-pad"
-                                                placeholderTextColor="#9CA3AF"
-                                            />
-
-                                            <TouchableOpacity
-                                                onPress={addEmergencyContact}
-                                                className="bg-blue-500 py-3 rounded-lg items-center"
-                                            >
-                                                <Text className="text-white font-nexaHeavy">Add Contact</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
+                            </View>
+                        ) : (
+                            <View className="flex-row justify-between items-center">
+                                <View className="flex-1">
+                                    <Text className="text-gray-800 font-nexaHeavy">{contact.name}</Text>
+                                    <Text className="text-gray-600 font-nexaExtraLight italic">{contact.desc}</Text>
+                                    <Text className="text-gray-600 font-nexaExtraLight">{contact.phone}</Text>
                                 </View>
-                            </Animated.View>
+                                <View className="flex-row">
+                                    <TouchableOpacity
+                                        onPress={() => startEditing(contact)}
+                                        className="bg-blue-100 px-3 py-1 rounded-full mr-2"
+                                    >
+                                        <Text className="text-blue-600 text-sm">Edit</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => deleteEmergencyContact(contact.id)}
+                                        className="bg-red-100 px-3 py-1 rounded-full"
+                                    >
+                                        <Text className="text-red-600 text-sm">Remove</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         )}
                     </View>
+                ))}
+
+                <View className="mt-4 mb-2">
+                    <Text className="text-base font-nexaHeavy mb-3 text-blue-700">Add New Contact</Text>
+
+                    <View className="bg-white p-4 rounded-lg shadow-sm">
+                        <TextInput
+                            className="bg-gray-100 p-3 rounded-lg mb-3"
+                            placeholder="Contact Name (e.g., Bobby)"
+                            value={newContactName}
+                            onChangeText={setNewContactName}
+                            placeholderTextColor="#9CA3AF"
+                        />
+                        <TextInput
+                            className="bg-gray-100 p-3 rounded-lg mb-3"
+                            placeholder="Description (e.g., Plumber)"
+                            value={newContactDesc}
+                            onChangeText={setNewContactDesc}
+                            placeholderTextColor="#9CA3AF"
+                        />
+                        <TextInput
+                            className="bg-gray-100 p-3 rounded-lg mb-3"
+                            placeholder="Phone Number"
+                            value={newContactPhone}
+                            onChangeText={setNewContactPhone}
+                            keyboardType="phone-pad"
+                            placeholderTextColor="#9CA3AF"
+                        />
+
+                        <TouchableOpacity
+                            onPress={addEmergencyContact}
+                            className="bg-blue-500 py-3 rounded-lg items-center"
+                        >
+                            <Text className="text-white font-nexaHeavy">Add Contact</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Animated.View>
+    )}
+</View>
+
                 </View>
             </ScrollView>
         </SafeAreaView>

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { icons } from "@/constants/icons";
+
 import {
     View,
     Text,
@@ -8,16 +10,26 @@ import {
     Modal,
     TextInput,
     Button,
+    ScrollView,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Picker } from '@react-native-picker/picker';
+
+const DropdownArrow = ({ isOpen, color }) => (
+    <Text style={{ fontSize: 24, color: color || '#8B5CF6', fontWeight: '600' }}>
+        {isOpen ? '▲' : '▼'}
+    </Text>
+);
 
 const Setting = () => {
     const [profilePic, setProfilePic] = useState('https://gatech.edu');
     const [name, setName] = useState('Name');
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [newName, setNewName] = useState(name);
-    const [storeLocation, setStoreLocation] = useState('Store 1');
+    
+    // Dropdown states
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [selectedStore, setSelectedStore] = useState('Store 1');
+    const storeOptions = ['Store 1', 'Store 2', 'Store 3'];
 
     const handleEditProfilePic = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -31,10 +43,8 @@ const Setting = () => {
             quality: 1,
         });
 
-        if (!result.canceled) {
-            if (result.assets && result.assets.length > 0) {
-                setProfilePic(result.assets[0].uri);
-            }
+        if (!result.canceled && result.assets?.length > 0) {
+            setProfilePic(result.assets[0].uri);
         }
     };
 
@@ -48,15 +58,24 @@ const Setting = () => {
         setEditModalVisible(false);
     };
 
+    const toggleDropdown = () => {
+        setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const selectOption = (option) => {
+        setSelectedStore(option);
+        setIsDropdownOpen(false);
+    };
+
     return (
         <View style={styles.container}>
+            <Text style={styles.title}>Settings</Text>
+
             <View style={styles.profileContainer}>
-                <TouchableOpacity
-                    onPress={handleEditProfilePic}
-                    style={styles.profilePicContainer}
-                >
-                    <Image style={styles.profilePic} source={{ uri: profilePic }} />
+                <TouchableOpacity onPress={handleEditProfilePic} style={styles.profilePicContainer}>
+                    <Image style={styles.profilePic} source={icons.manager} />
                 </TouchableOpacity>
+
                 <View style={styles.infoContainer}>
                     <View style={styles.nameRow}>
                         <Text style={styles.nameText}>{name}</Text>
@@ -64,23 +83,47 @@ const Setting = () => {
                             <Text style={styles.editButtonText}>Edit</Text>
                         </TouchableOpacity>
                     </View>
-                    {/* Dropdown for store location */}
+                    
                     <View style={styles.dropdownContainer}>
-                        <Picker
-                            selectedValue={storeLocation}
-                            onValueChange={(itemValue) => setStoreLocation(itemValue)}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Store 1" value="Store 1" />
-                            <Picker.Item label="Store 2" value="Store 2" />
-                            <Picker.Item label="Store 3" value="Store 3" />
-                        </Picker>
+                        <Text style={styles.dropdownLabel}>Select Store:</Text>
+                        <View style={styles.customDropdownContainer}>
+                            <TouchableOpacity 
+                                style={styles.dropdownHeader} 
+                                onPress={toggleDropdown}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={styles.selectedOptionText}>{selectedStore}</Text>
+                                <DropdownArrow isOpen={isDropdownOpen} color={PURPLE} />
+                            </TouchableOpacity>
+                            
+                            {isDropdownOpen && (
+                                <View style={styles.dropdownOptionsList}>
+                                    {storeOptions.map((option, index) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={[
+                                                styles.dropdownOption,
+                                                selectedStore === option && styles.selectedOption
+                                            ]}
+                                            onPress={() => selectOption(option)}
+                                        >
+                                            <Text 
+                                                style={[
+                                                    styles.dropdownOptionText,
+                                                    selectedStore === option && styles.selectedOptionText
+                                                ]}
+                                            >
+                                                {option}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
                     </View>
                 </View>
             </View>
-            <Text style={styles.title}>Setting</Text>
 
-            {/* Modal for editing name */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -106,21 +149,30 @@ const Setting = () => {
     );
 };
 
+const PURPLE = '#6B21A8';
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50, // Adjust for status bar if needed
-        paddingLeft: 20,
+        paddingTop: 60,
+        paddingHorizontal: 20,
+        backgroundColor: '#fff',
+    },
+    title: {
+        fontFamily: 'nexa-heavy',
+        fontSize: 28,
+        marginBottom: 30,
+        color: 'black',
     },
     profileContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     profilePicContainer: {
-        width: 150,          // Larger circle for the profile picture
-        height: 150,
-        borderRadius: 75,    // Creates a circle
-        backgroundColor: '#ddd', // Fallback color
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: '#eee',
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
@@ -136,35 +188,82 @@ const styles = StyleSheet.create({
     nameRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginBottom: 10,
     },
     nameText: {
+        fontFamily: 'nexa-heavy',
         fontSize: 20,
-        fontWeight: 'bold',
     },
     editButton: {
         marginLeft: 10,
-        backgroundColor: '#007AFF',
+        backgroundColor: PURPLE,
         paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 5,
+        paddingHorizontal: 12,
+        borderRadius: 6,
     },
     editButtonText: {
         color: 'white',
+        fontFamily: 'nexa-extralight',
+        fontSize: 14,
     },
     dropdownContainer: {
-        marginTop: 10,
+        marginTop: 5,
+    },
+    dropdownLabel: {
+        fontFamily: 'nexa-heavy',
+        fontSize: 16,
+        marginBottom: 5,
+    },
+    customDropdownContainer: {
+        position: 'relative',
+        zIndex: 1000,
+    },
+    dropdownHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        backgroundColor: '#f8f8f8',
         borderWidth: 1,
         borderColor: '#ccc',
-        borderRadius: 5,
-        overflow: 'hidden',
+        borderRadius: 6,
+        height: 45,
     },
-    picker: {
-        height: 50,
-        width: '100%',
+    dropdownOptionsList: {
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderTopWidth: 0,
+        borderColor: '#ccc',
+        borderBottomLeftRadius: 6,
+        borderBottomRightRadius: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        zIndex: 1001,
     },
-    title: {
-        marginTop: 20,
-        fontSize: 24,
+    dropdownOption: {
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    selectedOption: {
+        backgroundColor: '#f0f0ff',
+    },
+    dropdownOptionText: {
+        fontFamily: 'nexa-extralight',
+        fontSize: 16,
+        color: '#333',
+    },
+    selectedOptionText: {
+        fontFamily: 'nexa-heavy',
+        fontSize: 16,
+        color: PURPLE,
     },
     modalOverlay: {
         flex: 1,
@@ -179,16 +278,18 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'nexa-heavy',
+        fontSize: 20,
         marginBottom: 10,
+        color: PURPLE,
     },
     input: {
         borderWidth: 1,
         borderColor: '#ccc',
-        borderRadius: 5,
+        borderRadius: 6,
         padding: 10,
         marginBottom: 20,
+        fontFamily: 'nexa-extralight',
     },
     modalButtons: {
         flexDirection: 'row',
