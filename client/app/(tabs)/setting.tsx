@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { icons } from "@/constants/icons";
+import { users } from "@/dummy/dummyData"
 
 import {
     View,
@@ -22,14 +23,15 @@ const DropdownArrow = ({ isOpen, color }) => (
 
 const Setting = () => {
     const [profilePic, setProfilePic] = useState('https://gatech.edu');
-    const [name, setName] = useState('Name');
     const [editModalVisible, setEditModalVisible] = useState(false);
+    const user = users.length > 0 ? users[0] : { firstName: "Guest" };
+    const [name, setName] = useState(user.firstName);
     const [newName, setNewName] = useState(name);
     
     // Dropdown states
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [selectedStore, setSelectedStore] = useState('Store 1');
-    const storeOptions = ['Store 1', 'Store 2', 'Store 3'];
+    const [selectedStore, setSelectedStore] = useState('Roswell');
+    const storeOptions = ['Roswell', 'Midtown', 'Duluth'];
 
     const handleEditProfilePic = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
