@@ -103,308 +103,314 @@ const Dashboard: React.FC<Props> = ({ products }) => {
         return date.toLocaleDateString('en-US', options);
     };
 
-    // NEW FINANCIAL GRAPH - Purchased vs Leftover
-    const renderInventoryComparisonGraph = () => {
-        // Sort products by name for consistent display
-        const sortedProducts = [...products].sort((a, b) => a.product_name.localeCompare(b.product_name));
+    // Filter out products with a negative utilization rate
+const validProducts = products.filter(product => {
+    const used = product.purchased - product.leftover;
+    const usagePercentage = (used / product.purchased) * 100;
+    return usagePercentage >= 0;
+});
 
-        // Take top 8 products for better readability
-        const displayProducts = sortedProducts;
+// NEW FINANCIAL GRAPH - Purchased vs Leftover
+const renderInventoryComparisonGraph = () => {
+    // Sort valid products by name for consistent display
+    const sortedProducts = [...validProducts].sort((a, b) => a.product_name.localeCompare(b.product_name));
 
-        const barWidth = 65;
-        const chartWidth = Math.max(screenWidth, displayProducts.length * barWidth);
+    // Take top 8 products for better readability
+    const displayProducts = sortedProducts;
 
-        const data = {
-            labels: displayProducts.map(p => p.product_name.substring(0, 6)),
-            datasets: [
-                {
-                    data: displayProducts.map(p => p.purchased),
-                    color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue for purchased
-                    strokeWidth: 2.5,
-                },
-                {
-                    data: displayProducts.map(p => p.purchased - p.leftover),
-                    color: (opacity = 1) => `rgba(36, 197, 94, ${opacity})`, // Green for leftover
-                    strokeWidth: 2.5,
-                }
-            ],
-            legend: ["Purchased", "Sold"]
-        };
+    const barWidth = 65;
+    const chartWidth = Math.max(screenWidth, displayProducts.length * barWidth);
 
-        const chartConfig = {
-            backgroundColor: '#f8fafd',
-            backgroundGradientFrom: '#f8fafc',
-            backgroundGradientTo: '#f1f5f9',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
-            style: {
-                borderRadius: 16,
-                paddingRight: 16
+    const data = {
+        labels: displayProducts.map(p => p.product_name.substring(0, 6)),
+        datasets: [
+            {
+                data: displayProducts.map(p => p.purchased),
+                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue for purchased
+                strokeWidth: 2.5,
             },
-            propsForDots: {
-                r: "4",
-                strokeWidth: "2",
-                stroke: "#ffffff"
-            },
-            barPercentage: 0.7,
-            propsForBackgroundLines: {
-                strokeDasharray: '',
-                strokeWidth: 0.5,
-                stroke: 'rgba(203, 213, 225, 0.8)',
-            },
-            propsForLabels: {
-                fontFamily: 'NexaHeavy',
-                fontSize: 11,
-            },
-            paddingRight: 24,
-            paddingTop: 16,
-        };
-
-        return (
-            <View className="w-full">
-                <Text className="text-m font-nexaHeavy mb-2 text-gray-600 text-center">
-                    Inventory Comparison: Purchased vs Sold
-                </Text>
-                <Text className="text-sm font-nexaHeavy mb-2 text-gray-600 text-center">
-                    Product Utilization Overview
-                </Text>
-
-                <View className="flex-row items-center justify-center mb-2">
-                    <View className="flex-row items-center mr-4">
-                        <View className="w-3 h-3 rounded-full bg-blue-500 mr-1" />
-                        <Text className="text-xs font-nexaHeavy text-blue-600">Purchased</Text>
-                    </View>
-                    <View className="flex-row items-center">
-                        <View className="w-3 h-3 rounded-full bg-green-500 mr-1" />
-                        <Text className="text-xs font-nexaHeavy text-green-600">Sold</Text>
-                    </View>
-                </View>
-
-                <View className="bg-white p-4 rounded-xl shadow-sm">
-                    <ScrollView
-                        horizontal={true}
-                        showsHorizontalScrollIndicator={true}
-                        contentContainerStyle={{
-                            paddingRight: 20,
-                            height: 300, // Match chart height
-                        }}
-                    >
-                        <LineChart
-                            data={data}
-                            width={chartWidth > screenWidth ? chartWidth : screenWidth * 0.9}
-                            height={250}
-                            chartConfig={chartConfig}
-                            bezier
-                            style={{
-                                borderRadius: 8,
-                            }}
-                            verticalLabelRotation={30}
-                            fromZero={true}
-                        />
-                    </ScrollView>
-                </View>
-            </View>
-        );
+            {
+                data: displayProducts.map(p => p.purchased - p.leftover),
+                color: (opacity = 1) => `rgba(36, 197, 94, ${opacity})`, // Green for leftover
+                strokeWidth: 2.5,
+            }
+        ],
+        legend: ["Purchased", "Sold"]
     };
 
-    const renderProductExpenseGraph = () => {
-        // Sort products by name for consistent display
-        const sortedProducts = [...products].sort((a, b) => a.product_name.localeCompare(b.product_name));
-
-        // Take top 8 products for better readability
-        const displayProducts = sortedProducts.slice(0, 8);
-
-        const barWidth = 65;
-        const chartWidth = Math.max(screenWidth, displayProducts.length * barWidth);
-
-        const data = {
-            labels: displayProducts.map(p => p.product_name.substring(0, 6)),
-            datasets: [
-                {
-                    data: displayProducts.map(p => p.cost * p.purchased || 0), // Use cost property, default to 0 if undefined
-                    color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue bars
-                }
-            ],
-        };
-
-        const chartConfig = {
-            backgroundColor: '#f8fafc',
-            backgroundGradientFrom: '#f8fafc',
-            backgroundGradientTo: '#f1f5f9',
-            decimalPlaces: 2,
-            color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue color
-            labelColor: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
-            style: {
-                borderRadius: 16,
-                paddingRight: 16
-            },
-            barPercentage: 0.7,
-            propsForBackgroundLines: {
-                strokeDasharray: '',
-                strokeWidth: 0.5,
-                stroke: 'rgba(203, 213, 225, 0.8)',
-            },
-            propsForLabels: {
-                fontFamily: 'NexaHeavy',
-                fontSize: 11,
-            },
-            paddingRight: 24,
-            paddingTop: 16,
-            formatYLabel: (value) => `${value}`,
-            // Enable rendering of data value on top of bars
-            renderValuesOnTopOfBars: true,
-            // Custom decorator for displaying values
-            decorator: (data) => {
-                return data.map(value => {
-                    return {
-                        value: `${value.toFixed(2)}`,
-                        position: 'top',
-                        color: '#4B5563', // text-gray-600
-                        fontSize: 11,
-                        fontFamily: 'NexaHeavy',
-                    }
-                });
-            },
-        };
-
-        return (
-            <View className="w-full mt-6">
-                <Text className="text-m font-nexaHeavy mb-2 text-gray-600 text-center">
-                    Product Expenses
-                </Text>
-                <Text className="text-sm font-nexaHeavy mb-2 text-gray-600 text-center">
-                    (Per Product)
-                </Text>
-
-                <View className="bg-white p-4 rounded-xl shadow-sm">
-                    <ScrollView
-                        horizontal={true}
-                        showsHorizontalScrollIndicator={true}
-                        contentContainerStyle={{
-                            paddingRight: 20,
-                            height: 250, // Match chart height
-                        }}
-                    >
-                        <BarChart
-                            data={data}
-                            width={chartWidth > screenWidth ? chartWidth : screenWidth * 0.9}
-                            height={250}
-                            chartConfig={chartConfig}
-                            style={{
-                                borderRadius: 8,
-                            }}
-                            verticalLabelRotation={30}
-                            fromZero={true}
-                            showBarTops={true}
-                            showValuesOnTopOfBars={true}
-                            withInnerLines={true}
-                            yAxisLabel="$"
-                        />
-                    </ScrollView>
-                </View>
-            </View>
-        );
+    const chartConfig = {
+        backgroundColor: '#f8fafd',
+        backgroundGradientFrom: '#f8fafc',
+        backgroundGradientTo: '#f1f5f9',
+        decimalPlaces: 0,
+        color: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
+        labelColor: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
+        style: {
+            borderRadius: 16,
+            paddingRight: 16
+        },
+        propsForDots: {
+            r: "4",
+            strokeWidth: "2",
+            stroke: "#ffffff"
+        },
+        barPercentage: 0.7,
+        propsForBackgroundLines: {
+            strokeDasharray: '',
+            strokeWidth: 0.5,
+            stroke: 'rgba(203, 213, 225, 0.8)',
+        },
+        propsForLabels: {
+            fontFamily: 'NexaHeavy',
+            fontSize: 11,
+        },
+        paddingRight: 24,
+        paddingTop: 16,
     };
 
-    // Additional analysis of inventory data
-    const renderInventoryStats = () => {
-        // Calculate usage percentages
-        const productStats = products.map(product => {
-            const used = product.purchased - product.leftover;
-            const usagePercentage = (used / product.purchased) * 100;
-            return {
-                ...product,
-                used,
-                usagePercentage: isNaN(usagePercentage) ? 0 : usagePercentage
-            };
-        });
+    return (
+        <View className="w-full">
+            <Text className="text-m font-nexaHeavy mb-2 text-gray-600 text-center">
+                Inventory Comparison: Purchased vs Sold
+            </Text>
+            <Text className="text-sm font-nexaHeavy mb-2 text-gray-600 text-center">
+                Product Utilization Overview
+            </Text>
 
-        // Sort by highest and lowest usage
-        const highestUsage = [...productStats].sort((a, b) => b.usagePercentage - a.usagePercentage).slice(0, 3);
-        const lowestUsage = [...productStats].sort((a, b) => a.usagePercentage - b.usagePercentage).slice(0, 3);
-
-        return (
-            <>
-                {/* Highest usage products */}
-                <View className="bg-blue-50 rounded-xl p-4 mb-4 w-full">
-                    <Text className="text-base font-nexaHeavy mb-3 text-blue-700">
-                        Highest Utilization Products
-                    </Text>
-
-                    {highestUsage.map((item) => (
-                        <View
-                            key={item.id}
-                            className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
-                        >
-                            <Text className="text-gray-800 font-nexaExtraLight">{item.product_name}</Text>
-                            <View className="bg-blue-100 px-3 py-1 rounded-full">
-                                <Text className="text-blue-600 font-nexaHeavy text-sm">
-                                    {item.usagePercentage.toFixed(1)}% used
-                                </Text>
-                            </View>
-                        </View>
-                    ))}
+            <View className="flex-row items-center justify-center mb-2">
+                <View className="flex-row items-center mr-4">
+                    <View className="w-3 h-3 rounded-full bg-blue-500 mr-1" />
+                    <Text className="text-xs font-nexaHeavy text-blue-600">Purchased</Text>
                 </View>
-
-                {/* Lowest usage products */}
-                <View className="bg-amber-50 rounded-xl p-4 mb-4 w-full">
-                    <Text className="text-base font-nexaHeavy mb-3 text-amber-700">
-                        Lowest Utilization Products
-                    </Text>
-
-                    {lowestUsage.map((item) => (
-                        <View
-                            key={item.id}
-                            className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
-                        >
-                            <Text className="text-gray-800 font-nexaExtraLight">{item.product_name}</Text>
-                            <View className="bg-amber-100 px-3 py-1 rounded-full">
-                                <Text className="text-amber-600 font-nexaHeavy text-sm">
-                                    {item.usagePercentage.toFixed(1)}% used
-                                </Text>
-                            </View>
-                        </View>
-                    ))}
+                <View className="flex-row items-center">
+                    <View className="w-3 h-3 rounded-full bg-green-500 mr-1" />
+                    <Text className="text-xs font-nexaHeavy text-green-600">Sold</Text>
                 </View>
+            </View>
 
-                {/* Summary Stats */}
-                <View className="bg-green-50 rounded-xl p-4 w-full">
-                    <Text className="text-base font-nexaHeavy mb-3 text-green-700">
-                        Inventory Summary
-                    </Text>
+            <View className="bg-white p-4 rounded-xl shadow-sm">
+                <ScrollView
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={true}
+                    contentContainerStyle={{
+                        paddingRight: 20,
+                        height: 300, // Match chart height
+                    }}
+                >
+                    <LineChart
+                        data={data}
+                        width={chartWidth > screenWidth ? chartWidth : screenWidth * 0.9}
+                        height={250}
+                        chartConfig={chartConfig}
+                        bezier
+                        style={{
+                            borderRadius: 8,
+                        }}
+                        verticalLabelRotation={30}
+                        fromZero={true}
+                    />
+                </ScrollView>
+            </View>
+        </View>
+    );
+};
 
-                    <View className="flex-row justify-between mb-4">
-                        <View className="bg-white rounded-xl p-3 flex-1 mr-2 shadow-sm">
-                            <Text className="text-s text-gray-500 font-nexaExtraLight">Total Items Purchased</Text>
-                            <Text className="text-lg text-blue-600 font-nexaHeavy">
-                                {products.reduce((total, item) => total + item.purchased, 0).toLocaleString()}
-                            </Text>
-                        </View>
-                        <View className="bg-white rounded-xl p-3 flex-1 ml-2 shadow-sm">
-                            <Text className="text-s text-gray-500 font-nexaExtraLight">Total Items Sold</Text>
-                            <Text className="text-lg text-green-600 font-nexaHeavy">
-                                {products.reduce((total, item) => total + item.purchased - item.leftover, 0).toLocaleString()}
+// Product Expense Graph
+const renderProductExpenseGraph = () => {
+    // Sort valid products by name for consistent display
+    const sortedProducts = [...validProducts].sort((a, b) => a.product_name.localeCompare(b.product_name));
+
+    // Take top 8 products for better readability
+    const displayProducts = sortedProducts.slice(0, 8);
+
+    const barWidth = 65;
+    const chartWidth = Math.max(screenWidth, displayProducts.length * barWidth);
+
+    const data = {
+        labels: displayProducts.map(p => p.product_name.substring(0, 6)),
+        datasets: [
+            {
+                data: displayProducts.map(p => p.cost * p.purchased || 0), // Use cost property, default to 0 if undefined
+                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue bars
+            }
+        ],
+    };
+
+    const chartConfig = {
+        backgroundColor: '#f8fafc',
+        backgroundGradientFrom: '#f8fafc',
+        backgroundGradientTo: '#f1f5f9',
+        decimalPlaces: 2,
+        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue color
+        labelColor: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
+        style: {
+            borderRadius: 16,
+            paddingRight: 16
+        },
+        barPercentage: 0.7,
+        propsForBackgroundLines: {
+            strokeDasharray: '',
+            strokeWidth: 0.5,
+            stroke: 'rgba(203, 213, 225, 0.8)',
+        },
+        propsForLabels: {
+            fontFamily: 'NexaHeavy',
+            fontSize: 11,
+        },
+        paddingRight: 24,
+        paddingTop: 16,
+        formatYLabel: (value) => `${value}`,
+        renderValuesOnTopOfBars: true,
+        decorator: (data) => {
+            return data.map(value => {
+                return {
+                    value: `${value.toFixed(2)}`,
+                    position: 'top',
+                    color: '#4B5563', // text-gray-600
+                    fontSize: 11,
+                    fontFamily: 'NexaHeavy',
+                }
+            });
+        },
+    };
+
+    return (
+        <View className="w-full mt-6">
+            <Text className="text-m font-nexaHeavy mb-2 text-gray-600 text-center">
+                Product Expenses
+            </Text>
+            <Text className="text-sm font-nexaHeavy mb-2 text-gray-600 text-center">
+                (Per Product)
+            </Text>
+
+            <View className="bg-white p-4 rounded-xl shadow-sm">
+                <ScrollView
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={true}
+                    contentContainerStyle={{
+                        paddingRight: 20,
+                        height: 250, // Match chart height
+                    }}
+                >
+                    <BarChart
+                        data={data}
+                        width={chartWidth > screenWidth ? chartWidth : screenWidth * 0.9}
+                        height={250}
+                        chartConfig={chartConfig}
+                        style={{
+                            borderRadius: 8,
+                        }}
+                        verticalLabelRotation={30}
+                        fromZero={true}
+                        showBarTops={true}
+                        showValuesOnTopOfBars={true}
+                        withInnerLines={true}
+                        yAxisLabel="$"
+                    />
+                </ScrollView>
+            </View>
+        </View>
+    );
+};
+
+// Inventory Stats (Excluding Negative Utilization)
+const renderInventoryStats = () => {
+    // Calculate usage percentages for valid products only
+    const productStats = validProducts.map(product => {
+        const used = product.purchased - product.leftover;
+        const usagePercentage = (used / product.purchased) * 100;
+        return {
+            ...product,
+            used,
+            usagePercentage: isNaN(usagePercentage) ? 0 : usagePercentage
+        };
+    });
+
+    // Sort by highest and lowest usage
+    const highestUsage = [...productStats].sort((a, b) => b.usagePercentage - a.usagePercentage).slice(0, 3);
+    const lowestUsage = [...productStats].sort((a, b) => a.usagePercentage - b.usagePercentage).slice(0, 3);
+
+    return (
+        <>
+            {/* Highest usage products */}
+            <View className="bg-blue-50 rounded-xl p-4 mb-4 w-full">
+                <Text className="text-base font-nexaHeavy mb-3 text-blue-700">
+                    Highest Utilization Products
+                </Text>
+
+                {highestUsage.map((item) => (
+                    <View
+                        key={item.id}
+                        className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
+                    >
+                        <Text className="text-gray-800 font-nexaExtraLight">{item.product_name}</Text>
+                        <View className="bg-blue-100 px-3 py-1 rounded-full">
+                            <Text className="text-blue-600 font-nexaHeavy text-sm">
+                                {item.usagePercentage.toFixed(1)}% used
                             </Text>
                         </View>
                     </View>
+                ))}
+            </View>
 
-                    <View className="bg-white rounded-xl p-3 shadow-sm">
-                        <Text className="text-s text-gray-500 font-nexaExtraLight">Overall Utilization Rate</Text>
-                        <Text className="text-lg text-purple-600 font-nexaHeavy">
-                            {(() => {
-                                const totalPurchased = products.reduce((total, item) => total + item.purchased, 0);
-                                const totalLeftover = products.reduce((total, item) => total + item.leftover, 0);
-                                const used = totalPurchased - totalLeftover;
-                                const rate = (used / totalPurchased) * 100;
-                                return `${isNaN(rate) ? 0 : rate.toFixed(1)}%`;
-                            })()}
+            {/* Lowest usage products */}
+            <View className="bg-amber-50 rounded-xl p-4 mb-4 w-full">
+                <Text className="text-base font-nexaHeavy mb-3 text-amber-700">
+                    Lowest Utilization Products
+                </Text>
+
+                {lowestUsage.map((item) => (
+                    <View
+                        key={item.id}
+                        className="flex-row justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm w-full"
+                    >
+                        <Text className="text-gray-800 font-nexaExtraLight">{item.product_name}</Text>
+                        <View className="bg-amber-100 px-3 py-1 rounded-full">
+                            <Text className="text-amber-600 font-nexaHeavy text-sm">
+                                {item.usagePercentage.toFixed(1)}% used
+                            </Text>
+                        </View>
+                    </View>
+                ))}
+            </View>
+
+            {/* Summary Stats */}
+            <View className="bg-green-50 rounded-xl p-4 w-full">
+                <Text className="text-base font-nexaHeavy mb-3 text-green-700">
+                    Inventory Summary
+                </Text>
+
+                <View className="flex-row justify-between mb-4">
+                    <View className="bg-white rounded-xl p-3 flex-1 mr-2 shadow-sm">
+                        <Text className="text-s text-gray-500 font-nexaExtraLight">Total Items Purchased</Text>
+                        <Text className="text-lg text-blue-600 font-nexaHeavy">
+                            {validProducts.reduce((total, item) => total + item.purchased, 0).toLocaleString()}
+                        </Text>
+                    </View>
+                    <View className="bg-white rounded-xl p-3 flex-1 ml-2 shadow-sm">
+                        <Text className="text-s text-gray-500 font-nexaExtraLight">Total Items Sold</Text>
+                        <Text className="text-lg text-green-600 font-nexaHeavy">
+                            {validProducts.reduce((total, item) => total + item.purchased - item.leftover, 0).toLocaleString()}
                         </Text>
                     </View>
                 </View>
-            </>
-        );
-    };
+
+                <View className="bg-white rounded-xl p-3 shadow-sm">
+                    <Text className="text-s text-gray-500 font-nexaExtraLight">Overall Utilization Rate</Text>
+                    <Text className="text-lg text-purple-600 font-nexaHeavy">
+                        {(() => {
+                            const totalPurchased = validProducts.reduce((total, item) => total + item.purchased, 0);
+                            const totalLeftover = validProducts.reduce((total, item) => total + item.leftover, 0);
+                            const used = totalPurchased - totalLeftover;
+                            const rate = (used / totalPurchased) * 100;
+                            return `${isNaN(rate) ? 0 : rate.toFixed(1)}%`;
+                        })()}
+                    </Text>
+                </View>
+            </View>
+        </>
+    );
+};
 
     // drop downs
     const DropdownArrow = ({ isOpen, color }) => (
