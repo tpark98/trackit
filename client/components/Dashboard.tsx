@@ -103,19 +103,15 @@ const Dashboard: React.FC<Props> = ({ products }) => {
         return date.toLocaleDateString('en-US', options);
     };
 
-    // Filter out products with a negative utilization rate
-const validProducts = products.filter(product => {
-    const used = product.purchased - product.leftover;
-    const usagePercentage = (used / product.purchased) * 100;
-    return usagePercentage >= 0;
-});
+    const validProducts = products.filter(product => {
+        const used = product.purchased - product.leftover;
+        const usagePercentage = (used / product.purchased) * 100;
+        return usagePercentage >= 0;
+    });
 
-// NEW FINANCIAL GRAPH - Purchased vs Leftover
+// purchased vs leftover graph
 const renderInventoryComparisonGraph = () => {
-    // Sort valid products by name for consistent display
     const sortedProducts = [...validProducts].sort((a, b) => a.product_name.localeCompare(b.product_name));
-
-    // Take top 8 products for better readability
     const displayProducts = sortedProducts;
 
     const barWidth = 65;
@@ -126,12 +122,12 @@ const renderInventoryComparisonGraph = () => {
         datasets: [
             {
                 data: displayProducts.map(p => p.purchased),
-                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue for purchased
+                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
                 strokeWidth: 2.5,
             },
             {
                 data: displayProducts.map(p => p.purchased - p.leftover),
-                color: (opacity = 1) => `rgba(36, 197, 94, ${opacity})`, // Green for leftover
+                color: (opacity = 1) => `rgba(36, 197, 94, ${opacity})`,
                 strokeWidth: 2.5,
             }
         ],
@@ -194,7 +190,7 @@ const renderInventoryComparisonGraph = () => {
                     showsHorizontalScrollIndicator={true}
                     contentContainerStyle={{
                         paddingRight: 20,
-                        height: 300, // Match chart height
+                        height: 300,
                     }}
                 >
                     <LineChart
@@ -215,12 +211,9 @@ const renderInventoryComparisonGraph = () => {
     );
 };
 
-// Product Expense Graph
+// expense graph
 const renderProductExpenseGraph = () => {
-    // Sort valid products by name for consistent display
     const sortedProducts = [...validProducts].sort((a, b) => a.product_name.localeCompare(b.product_name));
-
-    // Take top 8 products for better readability
     const displayProducts = sortedProducts.slice(0, 8);
 
     const barWidth = 65;
@@ -230,8 +223,8 @@ const renderProductExpenseGraph = () => {
         labels: displayProducts.map(p => p.product_name.substring(0, 6)),
         datasets: [
             {
-                data: displayProducts.map(p => p.cost * p.purchased || 0), // Use cost property, default to 0 if undefined
-                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue bars
+                data: displayProducts.map(p => p.cost * p.purchased || 0),
+                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
             }
         ],
     };
@@ -241,7 +234,7 @@ const renderProductExpenseGraph = () => {
         backgroundGradientFrom: '#f8fafc',
         backgroundGradientTo: '#f1f5f9',
         decimalPlaces: 2,
-        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Blue color
+        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
         labelColor: (opacity = 1) => `rgba(71, 85, 105, ${opacity})`,
         style: {
             borderRadius: 16,
@@ -266,7 +259,7 @@ const renderProductExpenseGraph = () => {
                 return {
                     value: `${value.toFixed(2)}`,
                     position: 'top',
-                    color: '#4B5563', // text-gray-600
+                    color: '#4B5563',
                     fontSize: 11,
                     fontFamily: 'NexaHeavy',
                 }
@@ -289,7 +282,7 @@ const renderProductExpenseGraph = () => {
                     showsHorizontalScrollIndicator={true}
                     contentContainerStyle={{
                         paddingRight: 20,
-                        height: 250, // Match chart height
+                        height: 250,
                     }}
                 >
                     <BarChart
@@ -313,9 +306,8 @@ const renderProductExpenseGraph = () => {
     );
 };
 
-// Inventory Stats (Excluding Negative Utilization)
+// inventory stats
 const renderInventoryStats = () => {
-    // Calculate usage percentages for valid products only
     const productStats = validProducts.map(product => {
         const used = product.purchased - product.leftover;
         const usagePercentage = (used / product.purchased) * 100;
@@ -325,14 +317,12 @@ const renderInventoryStats = () => {
             usagePercentage: isNaN(usagePercentage) ? 0 : usagePercentage
         };
     });
-
-    // Sort by highest and lowest usage
     const highestUsage = [...productStats].sort((a, b) => b.usagePercentage - a.usagePercentage).slice(0, 3);
     const lowestUsage = [...productStats].sort((a, b) => a.usagePercentage - b.usagePercentage).slice(0, 3);
 
     return (
         <>
-            {/* Highest usage products */}
+            {/* highest usage */}
             <View className="bg-blue-50 rounded-xl p-4 mb-4 w-full">
                 <Text className="text-base font-nexaHeavy mb-3 text-blue-700">
                     Highest Utilization Products
@@ -353,7 +343,7 @@ const renderInventoryStats = () => {
                 ))}
             </View>
 
-            {/* Lowest usage products */}
+            {/* lowest usage */}
             <View className="bg-amber-50 rounded-xl p-4 mb-4 w-full">
                 <Text className="text-base font-nexaHeavy mb-3 text-amber-700">
                     Lowest Utilization Products

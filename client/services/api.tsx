@@ -33,7 +33,7 @@ export const addProduct = async (
   };
 
   try {
-    const response = await fetch(`${backend}/catgories`, {
+    const response = await fetch(`${backend}/products`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export const addProduct = async (
     const data = await response.json();
 
     if (response.ok) {
-      return data.user;
+      return data;
     } else {
       return data.message;
     }
@@ -74,7 +74,7 @@ export const changeCategory = async (
   };
 
   try {
-    const response = await fetch(`${backend}/catgories/${id}`, {
+    const response = await fetch(`${backend}/categories/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -94,7 +94,7 @@ export const changeCategory = async (
 };
 
 export const addCategory = async (
-    category_name: string,
+  category_name: string,
 ) => {
   const body = {
     category_name: category_name,
@@ -108,15 +108,22 @@ export const addCategory = async (
       },
       body: JSON.stringify(body),
     });
-    const data = await response.json();
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      return "Invalid JSON response from server.";
+    }
 
     if (response.ok) {
-      return data.user;
+      return data;
     } else {
-      return data.message;
+      return data.message || `Server error: ${response.status}`;
     }
-  } catch (error) {
-    console.error("error:", error);
+  } catch (error: any) {
+    console.error("Fetch error:", error);
+    return error.message || "Network error";
   }
 };
 
